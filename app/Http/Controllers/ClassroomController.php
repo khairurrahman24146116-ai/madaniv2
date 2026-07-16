@@ -6,16 +6,28 @@ use App\Models\Classroom;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * Controller Classroom — CRUD data kelas.
+ *
+ * Fase 1 (FR-1.2): Mengelola kelas dalam 3 tingkatan (X, XI, XII).
+ * Setiap kelas memiliki daftar siswa dan mapping guru-mata pelajaran.
+ */
 class ClassroomController extends Controller
 {
+    /**
+     * Menampilkan daftar kelas dengan jumlah siswa.
+     * Filter: grade (X/XI/XII) dan academic_year.
+     */
     public function index(Request $request): JsonResponse
     {
         $query = Classroom::withCount('students');
 
+        // Filter berdasarkan tingkat kelas
         if ($request->has('grade')) {
             $query->where('grade', $request->grade);
         }
 
+        // Filter berdasarkan tahun ajaran
         if ($request->has('academic_year')) {
             $query->where('academic_year', $request->academic_year);
         }
@@ -28,6 +40,9 @@ class ClassroomController extends Controller
         ]);
     }
 
+    /**
+     * Membuat kelas baru.
+     */
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -46,6 +61,9 @@ class ClassroomController extends Controller
         ], 201);
     }
 
+    /**
+     * Menampilkan detail kelas (siswa, guru, mata pelajaran).
+     */
     public function show(Classroom $classroom): JsonResponse
     {
         $classroom->load(['students', 'teacherSubjects.subject', 'teacherSubjects.user']);
@@ -56,6 +74,9 @@ class ClassroomController extends Controller
         ]);
     }
 
+    /**
+     * Memperbarui data kelas.
+     */
     public function update(Request $request, Classroom $classroom): JsonResponse
     {
         $validated = $request->validate([
@@ -74,6 +95,10 @@ class ClassroomController extends Controller
         ]);
     }
 
+    /**
+     * Menghapus kelas.
+     * Dilarang menghapus kelas yang masih memiliki siswa terdaftar.
+     */
     public function destroy(Classroom $classroom): JsonResponse
     {
         if ($classroom->students()->count() > 0) {
@@ -91,6 +116,10 @@ class ClassroomController extends Controller
         ]);
     }
 
+    /**
+     * Menampilkan daftar siswa aktif di kelas tertentu.
+     * Berguna untuk absensi atau melihat anggota kelas.
+     */
     public function getActiveStudents(Classroom $classroom): JsonResponse
     {
         $students = $classroom->activeStudents()->with('user')->get();

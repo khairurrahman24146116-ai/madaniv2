@@ -6,8 +6,18 @@ use App\Models\Subject;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * Controller Subject — CRUD mata pelajaran.
+ *
+ * Fase 1 (FR-1.1): Menyediakan daftar mata pelajaran SMA yang bisa
+ * dipetakan ke guru dan kelas melalui tabel teacher_subjects.
+ */
 class SubjectController extends Controller
 {
+    /**
+     * Menampilkan daftar mata pelajaran dengan jumlah guru pengajar.
+     * Filter: search (nama/kode mapel).
+     */
     public function index(Request $request): JsonResponse
     {
         $query = Subject::withCount('teachers');
@@ -16,11 +26,11 @@ class SubjectController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('code', 'like', "%{$search}%");
+                    ->orWhere('code', 'like', "%{$search}%");
             });
         }
 
-        $subjects = $query->orderBy('name')->get();
+        $subjects = $query->orderBy('name')->paginate(20);
 
         return response()->json([
             'success' => true,
@@ -28,6 +38,10 @@ class SubjectController extends Controller
         ]);
     }
 
+    /**
+     * Menambah mata pelajaran baru.
+     * Kode mapel bersifat unik (misal: MTK, BIN, BING).
+     */
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -45,6 +59,9 @@ class SubjectController extends Controller
         ], 201);
     }
 
+    /**
+     * Menampilkan detail mata pelajaran dan guru-guru pengajarnya.
+     */
     public function show(Subject $subject): JsonResponse
     {
         $subject->load('teachers');
@@ -55,11 +72,14 @@ class SubjectController extends Controller
         ]);
     }
 
+    /**
+     * Memperbarui data mata pelajaran.
+     */
     public function update(Request $request, Subject $subject): JsonResponse
     {
         $validated = $request->validate([
             'name' => 'sometimes|string|max:100',
-            'code' => 'sometimes|string|max:10|unique:subjects,code,' . $subject->id,
+            'code' => 'sometimes|string|max:10|unique:subjects,code,'.$subject->id,
             'description' => 'nullable|string',
         ]);
 
@@ -72,6 +92,10 @@ class SubjectController extends Controller
         ]);
     }
 
+    /**
+     * Menghapus mata pelajaran.
+     * Dilarang menghapus mapel yang masih ditugaskan ke guru.
+     */
     public function destroy(Subject $subject): JsonResponse
     {
         if ($subject->teachers()->count() > 0) {

@@ -2,15 +2,24 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Classroom;
-use App\Models\Subject;
 use App\Models\TeacherSubject;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * Controller TeacherSubject — Mapping Guru-Mata Pelajaran-Kelas.
+ *
+ * Fase 1 (FR-1.1): Menghubungkan siapa mengajar apa di kelas mana.
+ * Satu guru bisa mengajar banyak mapel di banyak kelas.
+ * Satu mapel bisa diajar oleh banyak guru di kelas berbeda.
+ */
 class TeacherSubjectController extends Controller
 {
+    /**
+     * Menampilkan daftar mapping dengan filter.
+     * Filter: user_id (guru), subject_id, classroom_id.
+     */
     public function index(Request $request): JsonResponse
     {
         $query = TeacherSubject::with(['user', 'subject', 'classroom']);
@@ -27,7 +36,7 @@ class TeacherSubjectController extends Controller
             $query->where('classroom_id', $request->classroom_id);
         }
 
-        $mappings = $query->get();
+        $mappings = $query->paginate(20);
 
         return response()->json([
             'success' => true,
@@ -35,6 +44,11 @@ class TeacherSubjectController extends Controller
         ]);
     }
 
+    /**
+     * Membuat mapping baru.
+     * Validasi: user harus berrole guru.
+     * Validasi: kombinasi (guru, mapel, kelas) tidak boleh duplikat.
+     */
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -43,6 +57,7 @@ class TeacherSubjectController extends Controller
             'classroom_id' => 'required|exists:classrooms,id',
         ]);
 
+        // Pastikan user yang dipilih benar-benar seorang guru
         $guru = User::findOrFail($validated['user_id']);
         if ($guru->role !== 'guru') {
             return response()->json([
@@ -51,6 +66,7 @@ class TeacherSubjectController extends Controller
             ], 422);
         }
 
+        // Cegah duplikasi mapping
         $exists = TeacherSubject::where([
             'user_id' => $validated['user_id'],
             'subject_id' => $validated['subject_id'],
@@ -74,6 +90,9 @@ class TeacherSubjectController extends Controller
         ], 201);
     }
 
+    /**
+     * Menampilkan detail mapping beserta jadwal terkait.
+     */
     public function show(TeacherSubject $teacherSubject): JsonResponse
     {
         $teacherSubject->load(['user', 'subject', 'classroom', 'schedules']);
@@ -84,6 +103,10 @@ class TeacherSubjectController extends Controller
         ]);
     }
 
+    /**
+     * Menghapus mapping.
+     * Dilarang menghapus mapping yang sudah memiliki jadwal.
+     */
     public function destroy(TeacherSubject $teacherSubject): JsonResponse
     {
         if ($teacherSubject->schedules()->count() > 0) {
@@ -101,6 +124,10 @@ class TeacherSubjectController extends Controller
         ]);
     }
 
+    /**
+     * Menampilkan jadwal mengajar seorang guru pada hari tertentu.
+     * Digunakan oleh guru untuk melihat jadwal hari ini.
+     */
     public function getTeacherSchedule(Request $request): JsonResponse
     {
         $request->validate([
@@ -111,7 +138,7 @@ class TeacherSubjectController extends Controller
         $schedules = TeacherSubject::where('user_id', $request->user_id)
             ->with(['subject', 'classroom', 'schedules'])
             ->get()
-            ->flatMap(fn($ts) => $ts->schedules->where('day', $request->day)->map(fn($s) => [
+            ->flatMap(fn ($ts) => $ts->schedules->where('day', $request->day)->map(fn ($s) => [
                 'schedule_id' => $s->id,
                 'subject' => $ts->subject->name,
                 'classroom' => $ts->classroom->name,

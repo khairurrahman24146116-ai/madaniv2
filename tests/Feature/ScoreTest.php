@@ -1,0 +1,102 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\Classroom;
+use App\Models\Student;
+use App\Models\Subject;
+use App\Models\TeacherSubject;
+use App\Models\User;
+use Database\Seeders\DatabaseSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class ScoreTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private string $guruToken;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed(DatabaseSeeder::class);
+        $guru = User::where('email', 'ahmad@madani.id')->first();
+        $this->guruToken = $guru->createToken('test')->plainTextToken;
+    }
+
+    public function test_store(): void
+    {
+        $response = $this->withToken($this->guruToken)->postJson('/scores', [
+            'student_id' => 1,
+            'subject_id' => 1,
+            'component_code' => 'tugas',
+            'value' => 85,
+            'description' => 'Tugas 2',
+            'semester' => 'ganjil',
+            'academic_year' => '2025/2026',
+        ]);
+        $response->assertStatus(201)->assertJsonPath('success', true);
+    }
+
+    public function test_batch_store(): void
+    {
+        $response = $this->withToken($this->guruToken)->postJson('/scores/batch', [
+            'subject_id' => 1,
+            'component_code' => 'ph',
+            'semester' => 'ganjil',
+            'academic_year' => '2025/2026',
+            'scores' => [
+                ['student_id' => 1, 'value' => 80],
+                ['student_id' => 2, 'value' => 90],
+            ],
+        ]);
+        $response->assertStatus(201)->assertJsonPath('success', true);
+    }
+
+    public function test_guru_cannot_input_scores_for_same_subject_in_another_teachers_class(): void
+    {
+        $guruLain = User::where('email', 'fatimah@madani.id')->firstOrFail();
+        $matematika = Subject::where('code', 'MTK')->firstOrFail();
+        $kelasXii = Classroom::where('name', 'XII IPA 1')->firstOrFail();
+        $siswaXii = Student::where('classroom_id', $kelasXii->id)->firstOrFail();
+
+        TeacherSubject::create([
+            'user_id' => $guruLain->id,
+            'subject_id' => $matematika->id,
+            'classroom_id' => $kelasXii->id,
+        ]);
+
+        $response = $this->withToken($this->guruToken)->postJson('/scores', [
+            'student_id' => $siswaXii->id,
+            'subject_id' => $matematika->id,
+            'component_code' => 'tugas',
+            'value' => 85,
+            'semester' => 'ganjil',
+            'academic_year' => '2025/2026',
+        ]);
+
+        $response->assertStatus(403);
+    }
+
+    public function test_final_grade(): void
+    {
+        $response = $this->withToken($this->guruToken)
+            ->getJson('/scores/final-grade?student_id=1&subject_id=1&semester=ganjil&academic_year=2025/2026');
+        $response->assertStatus(200)->assertJsonPath('success', true);
+    }
+
+    public function test_rapor(): void
+    {
+        $response = $this->withToken($this->guruToken)
+            ->getJson('/scores/rapor?student_id=1&semester=ganjil&academic_year=2025/2026');
+        $response->assertStatus(200)->assertJsonPath('success', true);
+    }
+
+    public function test_export_csv(): void
+    {
+        $response = $this->withToken($this->guruToken)->getJson('/scores/export-csv');
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Type', 'text/csv; charset=utf-8');
+    }
+}

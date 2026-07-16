@@ -1,0 +1,67 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\Schedule;
+use App\Models\Student;
+use App\Models\User;
+use Database\Seeders\DatabaseSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class AttendanceTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private string $guruToken;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed(DatabaseSeeder::class);
+        $guru = User::where('email', 'ahmad@madani.id')->first();
+        $this->guruToken = $guru->createToken('test')->plainTextToken;
+    }
+
+    public function test_form(): void
+    {
+        $scheduleId = Schedule::first()->id;
+
+        $response = $this->withToken($this->guruToken)
+            ->getJson("/attendances/form?schedule_id={$scheduleId}&date=2025-08-15");
+
+        $response->assertStatus(200)->assertJsonPath('success', true);
+    }
+
+    public function test_store(): void
+    {
+        $scheduleId = Schedule::first()->id;
+        $students = Student::where('classroom_id', 1)->pluck('id');
+
+        // Use a different date to avoid conflict with seeder data
+        $response = $this->withToken($this->guruToken)
+            ->postJson('/attendances', [
+                'schedule_id' => $scheduleId,
+                'date' => '2025-09-01',
+                'attendances' => $students->map(fn ($id) => [
+                    'student_id' => $id,
+                    'status' => 'H',
+                ])->toArray(),
+            ]);
+
+        $response->assertStatus(201)->assertJsonPath('success', true);
+    }
+
+    public function test_index(): void
+    {
+        $response = $this->withToken($this->guruToken)->getJson('/attendances');
+        $response->assertStatus(200);
+    }
+
+    public function test_export_csv(): void
+    {
+        $response = $this->withToken($this->guruToken)->getJson('/attendances/export-csv');
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Type', 'text/csv; charset=utf-8');
+    }
+}

@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>EduFlow Pro | Weekly Schedule</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-highest": "#e0e3e5",
+                    "on-secondary-fixed": "#0b1c30",
+                    "on-tertiary-fixed": "#131b2e",
+                    "on-surface-variant": "#434655",
+                    "secondary-container": "#d0e1fb",
+                    "on-primary-fixed": "#00174b",
+                    "primary-fixed-dim": "#b4c5ff",
+                    "surface-tint": "#0053db",
+                    "surface-container-high": "#e6e8ea",
+                    "primary": "#004ac6",
+                    "on-surface": "#191c1e",
+                    "surface-variant": "#e0e3e5",
+                    "surface-container-low": "#f2f4f6",
+                    "primary-container": "#2563eb",
+                    "on-secondary-container": "#54647a",
+                    "background": "#f7f9fb",
+                    "secondary-fixed-dim": "#b7c8e1",
+                    "tertiary-fixed-dim": "#bec6e0",
+                    "on-tertiary-fixed-variant": "#3f465c",
+                    "inverse-on-surface": "#eff1f3",
+                    "tertiary": "#4d556b",
+                    "outline": "#737686",
+                    "outline-variant": "#c3c6d7",
+                    "on-error-container": "#93000a",
+                    "surface": "#f7f9fb",
+                    "on-secondary-fixed-variant": "#38485d",
+                    "on-primary-container": "#eeefff",
+                    "surface-container-lowest": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "on-background": "#191c1e",
+                    "secondary": "#505f76",
+                    "secondary-fixed": "#d3e4fe",
+                    "on-secondary": "#ffffff",
+                    "on-tertiary-container": "#eef0ff",
+                    "error": "#ba1a1a",
+                    "tertiary-fixed": "#dae2fd",
+                    "on-primary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "surface-bright": "#f7f9fb",
+                    "inverse-surface": "#2d3133",
+                    "primary-fixed": "#dbe1ff",
+                    "inverse-primary": "#b4c5ff",
+                    "on-tertiary": "#ffffff",
+                    "surface-container": "#eceef0",
+                    "on-primary-fixed-variant": "#003ea8",
+                    "tertiary-container": "#656d84",
+                    "surface-dim": "#d8dadc"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-desktop": "48px",
+                    "md": "16px",
+                    "xs": "4px",
+                    "sm": "8px",
+                    "gutter": "24px",
+                    "margin-mobile": "16px",
+                    "lg": "24px",
+                    "xl": "32px",
+                    "base": "4px"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Inter"],
+                    "label-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "caption": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "headline-xl": ["Inter"],
+                    "body-md": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                    "headline-md": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "headline-xl": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: 80px repeat(5, 1fr);
+            grid-auto-rows: minmax(80px, auto);
+        }
+        .time-label {
+            @apply flex items-start justify-end pr-sm text-on-surface-variant font-label-md text-label-md;
+            margin-top: -8px;
+        }
+        .grid-cell {
+            @apply border-t border-l border-outline-variant;
+        }
+        .schedule-card {
+            @apply p-sm rounded-lg border-l-4 h-full shadow-sm transition-all cursor-pointer hover:shadow-md active:scale-95 flex flex-col justify-between;
+        }
+        .subject-stem { border-left-color: #2563EB; background-color: #EFF6FF; }
+        .subject-humanities { border-left-color: #D97706; background-color: #FFFBEB; }
+        .subject-arts { border-left-color: #7C3AED; background-color: #F5F3FF; }
+        .subject-pe { border-left-color: #059669; background-color: #ECFDF5; }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md overflow-x-hidden">
+<!-- TopNavBar -->
+<header class="bg-surface-container-lowest w-full h-16 border-b border-outline-variant flex justify-between items-center px-margin-desktop w-full max-w-full sticky top-0 z-50">
+<div class="flex items-center gap-xl">
+<span class="font-headline-xl text-headline-xl text-primary tracking-tight">EduFlow Pro</span>
+<nav class="hidden md:flex items-center gap-lg">
+<a class="text-secondary hover:text-primary transition-colors font-label-md text-label-md" href="#">Dashboard</a>
+<a class="text-primary border-b-2 border-primary pb-1 font-label-md text-label-md" href="#">Schedule</a>
+<a class="text-secondary hover:text-primary transition-colors font-label-md text-label-md" href="#">Attendance</a>
+<a class="text-secondary hover:text-primary transition-colors font-label-md text-label-md" href="#">Resources</a>
+</nav>
+</div>
+<div class="flex items-center gap-md">
+<button class="p-sm hover:bg-surface-container-high rounded-full transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+</button>
+<button class="p-sm hover:bg-surface-container-high rounded-full transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">settings</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden bg-surface-container-high ml-sm">
+<img class="w-full h-full object-cover" data-alt="Close-up portrait of a diverse university student with a warm, friendly smile, wearing a professional navy blue sweater. The lighting is soft and natural, suggesting a brightly lit campus interior. The overall aesthetic is academic, clean, and optimistic, maintaining the brand's blue and white primary color scheme." src="https://lh3.googleusercontent.com/aida-public/AB6AXuChjJXZiDL_VebtTaW2tvQixROpXhfIkPA1TplMZm46HdZ4hcK8XnH_YvS3xorUHTMamnyEmeMw2blPsXBnIxeYjR1pEo5oEoiPRFjz2pLZrnmf0jJ7Dd2C5h3cvPYpRUamGcLgnMWDstYLiEZdbdaafQ3_ihVDIvIvvG3nKeTAT_StMIINbZju0zfIzxZbuduCh1y3qXVi39W84wcDBGBMaN-xnwuWhas77-bd9UDSnIX_A6DwjaL1"/>
+</div>
+</div>
+</header>
+<div class="flex">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-16 h-[calc(100vh-64px)] w-64 bg-surface-container-low border-r border-outline-variant hidden lg:flex flex-col z-40">
+<div class="p-lg flex flex-col gap-xs">
+<div class="flex items-center gap-sm mb-sm">
+<div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined">school</span>
+</div>
+<div>
+<p class="font-headline-md text-headline-md text-on-surface">Academics</p>
+<p class="text-on-surface-variant text-caption font-caption">Fall Semester 2024</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 px-sm">
+<div class="flex items-center gap-md p-md mx-sm my-xs transition-all hover:bg-surface-container-high rounded-lg cursor-pointer text-on-surface-variant">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Overview</span>
+</div>
+<div class="flex items-center gap-md p-md mx-sm my-xs transition-all bg-secondary-container text-on-secondary-container rounded-lg cursor-pointer">
+<span class="material-symbols-outlined">calendar_month</span>
+<span class="font-label-md text-label-md">My Schedule</span>
+</div>
+<div class="flex items-center gap-md p-md mx-sm my-xs transition-all hover:bg-surface-container-high rounded-lg cursor-pointer text-on-surface-variant">
+<span class="material-symbols-outlined">rule</span>
+<span class="font-label-md text-label-md">Attendance Log</span>
+</div>
+<div class="flex items-center gap-md p-md mx-sm my-xs transition-all hover:bg-surface-container-high rounded-lg cursor-pointer text-on-surface-variant">
+<span class="material-symbols-outlined">grade</span>
+<span class="font-label-md text-label-md">Gradebook</span>
+</div>
+<div class="flex items-center gap-md p-md mx-sm my-xs transition-all hover:bg-surface-container-high rounded-lg cursor-pointer text-on-surface-variant">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</div>
+</nav>
+<div class="p-lg mt-auto border-t border-outline-variant">
+<button class="w-full py-sm bg-primary text-on-primary rounded-lg font-label-md text-label-md transition-transform active:scale-95 shadow-sm">View Profile</button>
+<div class="mt-lg space-y-md">
+<div class="flex items-center gap-md px-sm text-on-surface-variant hover:text-primary cursor-pointer transition-colors">
+<span class="material-symbols-outlined text-[20px]">help</span>
+<span class="font-label-md text-label-md">Help</span>
+</div>
+<div class="flex items-center gap-md px-sm text-on-surface-variant hover:text-error cursor-pointer transition-colors">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+<span class="font-label-md text-label-md">Logout</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 lg:ml-64 p-margin-mobile md:p-margin-desktop max-w-[1600px] mx-auto min-h-[calc(100vh-64px)]">
+<!-- Page Header & Controls -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-lg mb-xl">
+<div>
+<h1 class="font-headline-xl text-headline-xl text-on-surface mb-xs">Weekly Schedule</h1>
+<p class="text-on-surface-variant font-body-lg text-body-lg">View and manage your academic sessions for the current week.</p>
+</div>
+<div class="flex flex-wrap items-center gap-md bg-surface-container-low p-xs rounded-xl border border-outline-variant">
+<button class="px-lg py-sm bg-surface-container-lowest text-primary rounded-lg font-label-md text-label-md shadow-sm border border-outline-variant/20 transition-all">Class View</button>
+<button class="px-lg py-sm text-on-surface-variant hover:text-on-surface rounded-lg font-label-md text-label-md transition-all">Student View</button>
+</div>
+</div>
+<!-- Calendar Container -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden shadow-sm">
+<!-- Day Headers -->
+<div class="grid grid-cols-[80px_repeat(5,1fr)] bg-surface-container-low border-b border-outline-variant">
+<div class="h-16 flex items-center justify-center">
+<span class="material-symbols-outlined text-outline">schedule</span>
+</div>
+<div class="h-16 flex flex-col items-center justify-center border-l border-outline-variant">
+<span class="font-label-md text-label-md text-primary uppercase">Mon</span>
+<span class="font-headline-md text-headline-md text-on-surface">18</span>
+</div>
+<div class="h-16 flex flex-col items-center justify-center border-l border-outline-variant">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase">Tue</span>
+<span class="font-headline-md text-headline-md text-on-surface">19</span>
+</div>
+<div class="h-16 flex flex-col items-center justify-center border-l border-outline-variant">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase">Wed</span>
+<span class="font-headline-md text-headline-md text-on-surface">20</span>
+</div>
+<div class="h-16 flex flex-col items-center justify-center border-l border-outline-variant">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase">Thu</span>
+<span class="font-headline-md text-headline-md text-on-surface">21</span>
+</div>
+<div class="h-16 flex flex-col items-center justify-center border-l border-outline-variant">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase">Fri</span>
+<span class="font-headline-md text-headline-md text-on-surface">22</span>
+</div>
+</div>
+<!-- Schedule Grid -->
+<div class="schedule-grid relative">
+<!-- Grid Background Lines -->
+<!-- Time labels & Row borders -->
+<div class="time-label pt-xs">08:00</div> <div class="grid-cell p-sm">
+<div class="schedule-card subject-stem">
+<div>
+<p class="font-label-md text-label-md text-primary mb-xs">MATHEMATICS</p>
+<p class="font-headline-md text-headline-md text-on-surface leading-tight">Advanced Calculus</p>
+</div>
+<div class="flex items-center justify-between mt-sm">
+<span class="text-caption font-caption text-on-surface-variant flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]">person</span> Dr. Harrison
+                                </span>
+<span class="text-caption font-caption text-on-surface-variant flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]">location_on</span> Room 402
+                                </span>
+</div>
+</div>
+</div> <div class="grid-cell"></div> <div class="grid-cell p-sm">
+<div class="schedule-card subject-stem">
+<div>
+<p class="font-label-md text-label-md text-primary mb-xs">MATHEMATICS</p>
+<p class="font-headline-md text-headline-md text-on-surface leading-tight">Advanced Calculus</p>
+</div>
+<div class="flex items-center justify-between mt-sm">
+<span class="text-caption font-caption text-on-surface-variant">Dr. Harrison</span>
+<span class="text-caption font-caption text-on-surface-variant">Room 402</span>
+</div>
+</div>
+</div> <div class="grid-cell"></div> <div class="grid-cell p-sm">
+<div class="schedule-card subject-humanities">
+<div>
+<p class="font-label-md text-label-md text-on-tertiary-fixed-variant mb-xs">HISTORY</p>
+<p class="font-headline-md text-headline-md text-on-surface leading-tight">Modern Revolutions</p>
+</div>
+<div class="flex items-center justify-between mt-sm">
+<span class="text-caption font-caption text-on-surface-variant">Prof. Aris</span>
+<span class="text-caption font-caption text-on-surface-variant">Hall A</span>
+</div>
+</div>
+</div>
+<div class="time-label pt-xs">09:30</div> <div class="grid-cell"></div> <div class="grid-cell p-sm">
+<div class="schedule-card subject-arts">
+<div>
+<p class="font-label-md text-label-md text-tertiary mb-xs">LITERATURE</p>
+<p class="font-headline-md text-headline-md text-on-surface leading-tight">Renaissance Texts</p>
+</div>
+<div class="flex items-center justify-between mt-sm">
+<span class="text-caption font-caption text-on-surface-variant">Ms. Weaver</span>
+<span class="text-caption font-caption text-on-surface-variant">Room 105</span>
+</div>
+</div>
+</div> <div class="grid-cell"></div> <div class="grid-cell p-sm">
+<div class="schedule-card subject-stem">
+<div>
+<p class="font-label-md text-label-md text-primary mb-xs">BIOLOGY</p>
+<p class="font-headline-md text-headline-md text-on-surface leading-tight">Molecular Genetics</p>
+</div>
+<div class="flex items-center justify-between mt-sm">
+<span class="text-caption font-caption text-on-surface-variant">Dr. Grant</span>
+<span class="text-caption font-caption text-on-surface-variant">Lab 02</span>
+</div>
+</div>
+</div> <div class="grid-cell"></div>
+<div class="time-label pt-xs">11:00</div> <div class="grid-cell p-sm">
+<div class="schedule-card subject-humanities">
+<div>
+<p class="font-label-md text-label-md text-on-tertiary-fixed-variant mb-xs">SOCIAL STUDIES</p>
+<p class="font-headline-md text-headline-md text-on-surface leading-tight">Global Economics</p>
+</div>
+<div class="flex items-center justify-between mt-sm">
+<span class="text-caption font-caption text-on-surface-variant">Mr. Smith</span>
+<span class="text-caption font-caption text-on-surface-variant">Room 301</span>
+</div>
+</div>
+</div> <div class="grid-cell p-sm">
+<div class="schedule-card subject-pe">
+<div>
+<p class="font-label-md text-label-md text-on-secondary-fixed-variant mb-xs">FITNESS</p>
+<p class="font-headline-md text-headline-md text-on-surface leading-tight">Physical Education</p>
+</div>
+<div class="flex items-center justify-between mt-sm">
+<span class="text-caption font-caption text-on-surface-variant">Coach Miller</span>
+<span class="text-caption font-caption text-on-surface-variant">Gymnasium</span>
+</div>
+</div>
+</div> <div class="grid-cell p-sm">
+<div class="schedule-card subject-humanities">
+<div>
+<p class="font-label-md text-label-md text-on-tertiary-fixed-variant mb-xs">SOCIAL STUDIES</p>
+<p class="font-headline-md text-headline-md text-on-surface leading-tight">Global Economics</p>
+</div>
+<div class="flex items-center justify-between mt-sm">
+<span class="text-caption font-caption text-on-surface-variant">Mr. Smith</span>
+<span class="text-caption font-caption text-on-surface-variant">Room 301</span>
+</div>
+</div>
+</div> <div class="grid-cell"></div> <div class="grid-cell p-sm">
+<div class="schedule-card subject-arts">
+<div>
+<p class="font-label-md text-label-md text-tertiary mb-xs">FINE ARTS</p>
+<p class="font-headline-md text-headline-md text-on-surface leading-tight">Creative Theory</p>
+</div>
+<div class="flex items-center justify-between mt-sm">
+<span class="text-caption font-caption text-on-surface-variant">Mrs. Lane</span>
+<span class="text-caption font-caption text-on-surface-variant">Studio B</span>
+</div>
+</div>
+</div>
+<div class="time-label pt-xs">12:30</div>
+<div class="grid-cell col-span-5 bg-surface-container-low flex items-center justify-center border-l-0">
+<span class="font-label-md text-label-md text-outline uppercase tracking-widest">Lunch Break & Peer Study</span>
+</div>
+<div class="time-label pt-xs">13:30</div> <div class="grid-cell"></div> <div class="grid-cell p-sm">
+<div class="schedule-card subject-stem">
+<div>
+<p class="font-label-md text-label-md text-primary mb-xs">PHYSICS</p>
+<p class="font-headline-md text-headline-md text-on-surface leading-tight">Quantum Mechanics</p>
+</div>
+<div class="flex items-center justify-between mt-sm">
+<span class="text-caption font-caption text-on-surface-variant">Dr. Patel</span>
+<span class="text-caption font-caption text-on-surface-variant">Hall C</span>
+</div>
+</div>
+</div> <div class="grid-cell"></div> <div class="grid-cell p-sm">
+<div class="schedule-card subject-stem">
+<div>
+<p class="font-label-md text-label-md text-primary mb-xs">PHYSICS</p>
+<p class="font-headline-md text-headline-md text-on-surface leading-tight">Quantum Mechanics</p>
+</div>
+<div class="flex items-center justify-between mt-sm">
+<span class="text-caption font-caption text-on-surface-variant">Dr. Patel</span>
+<span class="text-caption font-caption text-on-surface-variant">Hall C</span>
+</div>
+</div>
+</div> <div class="grid-cell p-sm">
+<div class="schedule-card subject-pe">
+<div>
+<p class="font-label-md text-label-md text-on-secondary-fixed-variant mb-xs">FITNESS</p>
+<p class="font-headline-md text-headline-md text-on-surface leading-tight">Outdoor Sports</p>
+</div>
+<div class="flex items-center justify-between mt-sm">
+<span class="text-caption font-caption text-on-surface-variant">Coach Miller</span>
+<span class="text-caption font-caption text-on-surface-variant">Field 01</span>
+</div>
+</div>
+</div>
+<div class="time-label pt-xs">15:00</div> <div class="grid-cell p-sm">
+<div class="schedule-card subject-arts">
+<div>
+<p class="font-label-md text-label-md text-tertiary mb-xs">LITERATURE</p>
+<p class="font-headline-md text-headline-md text-on-surface leading-tight">Semantics Seminar</p>
+</div>
+<div class="flex items-center justify-between mt-sm">
+<span class="text-caption font-caption text-on-surface-variant">Ms. Weaver</span>
+<span class="text-caption font-caption text-on-surface-variant">Room 105</span>
+</div>
+</div>
+</div> <div class="grid-cell"></div> <div class="grid-cell p-sm">
+<div class="schedule-card subject-arts">
+<div>
+<p class="font-label-md text-label-md text-tertiary mb-xs">LITERATURE</p>
+<p class="font-headline-md text-headline-md text-on-surface leading-tight">Semantics Seminar</p>
+</div>
+<div class="flex items-center justify-between mt-sm">
+<span class="text-caption font-caption text-on-surface-variant">Ms. Weaver</span>
+<span class="text-caption font-caption text-on-surface-variant">Room 105</span>
+</div>
+</div>
+</div> <div class="grid-cell"></div> <div class="grid-cell"></div>
+</div>
+</div>
+<!-- Footer Legend & Mobile Support -->
+<div class="mt-xl flex flex-wrap items-center gap-xl">
+<div class="flex items-center gap-md">
+<span class="w-3 h-3 rounded-full bg-[#2563EB]"></span>
+<span class="font-label-md text-label-md text-on-surface-variant uppercase">STEM</span>
+</div>
+<div class="flex items-center gap-md">
+<span class="w-3 h-3 rounded-full bg-[#D97706]"></span>
+<span class="font-label-md text-label-md text-on-surface-variant uppercase">Humanities</span>
+</div>
+<div class="flex items-center gap-md">
+<span class="w-3 h-3 rounded-full bg-[#7C3AED]"></span>
+<span class="font-label-md text-label-md text-on-surface-variant uppercase">Arts</span>
+</div>
+<div class="flex items-center gap-md">
+<span class="w-3 h-3 rounded-full bg-[#059669]"></span>
+<span class="font-label-md text-label-md text-on-surface-variant uppercase">Health/PE</span>
+</div>
+</div>
+</main>
+</div>
+<!-- Mobile Navigation Shell (BottomNavBar) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full h-16 bg-surface-container-lowest border-t border-outline-variant flex justify-around items-center z-50">
+<div class="flex flex-col items-center gap-xs text-on-surface-variant">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[10px] font-label-md uppercase">Home</span>
+</div>
+<div class="flex flex-col items-center gap-xs text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">calendar_month</span>
+<span class="text-[10px] font-label-md uppercase">Schedule</span>
+</div>
+<div class="flex flex-col items-center gap-xs text-on-surface-variant">
+<span class="material-symbols-outlined">rule</span>
+<span class="text-[10px] font-label-md uppercase">Attendance</span>
+</div>
+<div class="flex flex-col items-center gap-xs text-on-surface-variant">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-label-md uppercase">Profile</span>
+</div>
+</nav>
+<script>
+        // Simple Interaction logic for schedule cards
+        document.querySelectorAll('.schedule-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-2px)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+            });
+            card.addEventListener('click', () => {
+                alert('Viewing session details for: ' + card.querySelector('.font-headline-md').innerText);
+            });
+        });
+
+        // Time indicator logic (Atmospheric micro-interaction)
+        function updateTimeLine() {
+            // In a real app, this would position a red line based on current time
+            // For the demo, we just ensure the layout is clean.
+        }
+        updateTimeLine();
+    </script>
+</body></html>

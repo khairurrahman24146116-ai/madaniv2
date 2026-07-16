@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>EduManage - Weekly Schedule</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary-fixed": "#131b2e",
+                    "tertiary-fixed": "#dae2fd",
+                    "surface-container": "#eceef0",
+                    "surface-variant": "#e0e3e5",
+                    "inverse-on-surface": "#eff1f3",
+                    "surface-dim": "#d8dadc",
+                    "on-error-container": "#93000a",
+                    "on-surface-variant": "#434655",
+                    "on-tertiary": "#ffffff",
+                    "secondary-fixed": "#d3e4fe",
+                    "on-error": "#ffffff",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary-container": "#eef0ff",
+                    "inverse-primary": "#b4c5ff",
+                    "surface-container-low": "#f2f4f6",
+                    "primary-fixed-dim": "#b4c5ff",
+                    "background": "#f7f9fb",
+                    "on-secondary-container": "#54647a",
+                    "on-secondary": "#ffffff",
+                    "on-surface": "#191c1e",
+                    "on-primary-fixed": "#00174b",
+                    "surface-container-high": "#e6e8ea",
+                    "on-secondary-fixed": "#0b1c30",
+                    "primary": "#004ac6",
+                    "on-primary": "#ffffff",
+                    "tertiary-container": "#656d84",
+                    "outline-variant": "#c3c6d7",
+                    "outline": "#737686",
+                    "tertiary": "#4d556b",
+                    "on-secondary-fixed-variant": "#38485d",
+                    "tertiary-fixed-dim": "#bec6e0",
+                    "error": "#ba1a1a",
+                    "on-background": "#191c1e",
+                    "surface-container-highest": "#e0e3e5",
+                    "on-tertiary-fixed-variant": "#3f465c",
+                    "primary-container": "#2563eb",
+                    "secondary-container": "#d0e1fb",
+                    "error-container": "#ffdad6",
+                    "surface": "#f7f9fb",
+                    "surface-bright": "#f7f9fb",
+                    "surface-tint": "#0053db",
+                    "secondary": "#505f76",
+                    "on-primary-fixed-variant": "#003ea8",
+                    "primary-fixed": "#dbe1ff",
+                    "on-primary-container": "#eeefff",
+                    "inverse-surface": "#2d3133",
+                    "secondary-fixed-dim": "#b7c8e1"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-desktop": "48px",
+                    "md": "16px",
+                    "lg": "24px",
+                    "xs": "4px",
+                    "gutter": "24px",
+                    "sm": "8px",
+                    "base": "4px",
+                    "margin-mobile": "16px",
+                    "xl": "32px"
+            },
+            "fontFamily": {
+                    "headline-xl": ["Inter"],
+                    "caption": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "label-md": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "body-md": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-xl": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-md": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .active-day {
+            background-color: #004ac6;
+            color: #ffffff;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        /* Subject Category Accents */
+        .category-stem { border-left: 4px solid #2563eb; }
+        .category-humanities { border-left: 4px solid #7c3aed; }
+        .category-arts { border-left: 4px solid #db2777; }
+        .category-language { border-left: 4px solid #059669; }
+        .category-pe { border-left: 4px solid #d97706; }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="w-full top-0 sticky bg-surface border-b border-outline-variant z-50 flex justify-between items-center px-margin-mobile py-sm">
+<div class="flex items-center gap-md">
+<button class="material-symbols-outlined text-primary hover:bg-surface-container transition-colors p-xs rounded-full active:scale-95" data-icon="menu">menu</button>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile font-bold text-primary">EduManage</h1>
+</div>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A professional student portrait for a school management app. The young man has a friendly expression, wearing a clean white collared shirt against a soft, neutral-colored blurred classroom background. The lighting is bright and even, conveying a sense of academic reliability and organized student life. High-quality corporate aesthetic with professional studio lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHJ3jo_qJGdNgtV0QSS5oWw2tgCW_8f5W4XBtxSxcoOh_yKSWq5ErQR19arEFyPZDh71zBwBOb4FqPEqVi21L4foGCIpSqXIs4Ejb5ZVqqpjfiZBMMh4hgNNiE1GAEdNHr0v6ZyPPi9DngAZvQb_QgPJfME0qh7XTO0yJ7jaJX2ezbAMnjGepLvVhOb08JwLDJrtq4fKPAbZw--MS2PgUgN3CbcSO0sRyRgMkXYxwfJKL9SOilS2oW"/>
+</div>
+</header>
+<main class="max-w-md mx-auto px-margin-mobile pt-lg">
+<!-- Header Section -->
+<div class="mb-lg">
+<h2 class="font-headline-lg text-headline-lg text-on-surface mb-xs">Jadwal Pelajaran</h2>
+<p class="text-on-surface-variant font-body-md">Semester Ganjil 2024/2025</p>
+</div>
+<!-- Day Selector (Scrollable) -->
+<div class="flex gap-sm overflow-x-auto hide-scrollbar mb-xl py-xs">
+<button class="day-btn active-day flex-shrink-0 flex flex-col items-center justify-center w-14 py-md rounded-xl transition-all duration-200" onclick="switchDay(this, 'Mon')">
+<span class="text-label-md font-label-md uppercase opacity-80">Mon</span>
+<span class="text-body-lg font-bold">14</span>
+</button>
+<button class="day-btn bg-surface-container-low text-on-surface-variant flex-shrink-0 flex flex-col items-center justify-center w-14 py-md rounded-xl transition-all duration-200 hover:bg-surface-container-high" onclick="switchDay(this, 'Tue')">
+<span class="text-label-md font-label-md uppercase opacity-80">Tue</span>
+<span class="text-body-lg font-bold">15</span>
+</button>
+<button class="day-btn bg-surface-container-low text-on-surface-variant flex-shrink-0 flex flex-col items-center justify-center w-14 py-md rounded-xl transition-all duration-200 hover:bg-surface-container-high" onclick="switchDay(this, 'Wed')">
+<span class="text-label-md font-label-md uppercase opacity-80">Wed</span>
+<span class="text-body-lg font-bold">16</span>
+</button>
+<button class="day-btn bg-surface-container-low text-on-surface-variant flex-shrink-0 flex flex-col items-center justify-center w-14 py-md rounded-xl transition-all duration-200 hover:bg-surface-container-high" onclick="switchDay(this, 'Thu')">
+<span class="text-label-md font-label-md uppercase opacity-80">Thu</span>
+<span class="text-body-lg font-bold">17</span>
+</button>
+<button class="day-btn bg-surface-container-low text-on-surface-variant flex-shrink-0 flex flex-col items-center justify-center w-14 py-md rounded-xl transition-all duration-200 hover:bg-surface-container-high" onclick="switchDay(this, 'Fri')">
+<span class="text-label-md font-label-md uppercase opacity-80">Fri</span>
+<span class="text-body-lg font-bold">18</span>
+</button>
+<button class="day-btn bg-surface-container-low text-on-surface-variant flex-shrink-0 flex flex-col items-center justify-center w-14 py-md rounded-xl transition-all duration-200 hover:bg-surface-container-high" onclick="switchDay(this, 'Sat')">
+<span class="text-label-md font-label-md uppercase opacity-80">Sat</span>
+<span class="text-body-lg font-bold">19</span>
+</button>
+</div>
+<!-- Vertical Timeline View -->
+<div class="space-y-md relative border-l-2 border-surface-container ml-2 pl-6">
+<!-- Class Card 1 -->
+<div class="relative">
+<div class="absolute -left-[31px] top-4 w-4 h-4 rounded-full bg-primary ring-4 ring-background"></div>
+<div class="bg-surface border border-outline-variant rounded-lg p-md category-stem transition-all duration-200 active:scale-[0.98]">
+<div class="flex justify-between items-start mb-xs">
+<span class="text-primary font-label-md text-label-md">08:00 - 09:30</span>
+<span class="bg-secondary-container text-on-secondary-container px-sm py-px rounded-full text-caption font-label-md">Room 302</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Advanced Mathematics</h3>
+<div class="flex items-center gap-xs mt-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]" data-icon="person">person</span>
+<span class="text-body-md">Dr. Sarah Jenkins</span>
+</div>
+</div>
+</div>
+<!-- Class Card 2 -->
+<div class="relative">
+<div class="absolute -left-[31px] top-4 w-4 h-4 rounded-full bg-surface-container ring-4 ring-background"></div>
+<div class="bg-surface border border-outline-variant rounded-lg p-md category-humanities transition-all duration-200 active:scale-[0.98]">
+<div class="flex justify-between items-start mb-xs">
+<span class="text-primary font-label-md text-label-md">09:45 - 11:15</span>
+<span class="bg-secondary-container text-on-secondary-container px-sm py-px rounded-full text-caption font-label-md">Main Hall</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface">World History</h3>
+<div class="flex items-center gap-xs mt-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]" data-icon="person">person</span>
+<span class="text-body-md">Prof. Michael Chen</span>
+</div>
+</div>
+</div>
+<!-- Break / Recess -->
+<div class="relative py-sm">
+<div class="absolute -left-[31px] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-surface-variant ring-4 ring-background"></div>
+<div class="flex items-center gap-md">
+<div class="h-px flex-grow bg-outline-variant"></div>
+<div class="flex items-center gap-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]" data-icon="restaurant">restaurant</span>
+<span class="text-label-md font-label-md uppercase tracking-widest">Lunch Break</span>
+</div>
+<div class="h-px flex-grow bg-outline-variant"></div>
+</div>
+</div>
+<!-- Class Card 3 -->
+<div class="relative">
+<div class="absolute -left-[31px] top-4 w-4 h-4 rounded-full bg-surface-container ring-4 ring-background"></div>
+<div class="bg-surface border border-outline-variant rounded-lg p-md category-arts transition-all duration-200 active:scale-[0.98]">
+<div class="flex justify-between items-start mb-xs">
+<span class="text-primary font-label-md text-label-md">12:15 - 13:45</span>
+<span class="bg-secondary-container text-on-secondary-container px-sm py-px rounded-full text-caption font-label-md">Studio B</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Digital Arts</h3>
+<div class="flex items-center gap-xs mt-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]" data-icon="person">person</span>
+<span class="text-body-md">Elena Rodriguez</span>
+</div>
+</div>
+</div>
+<!-- Class Card 4 -->
+<div class="relative">
+<div class="absolute -left-[31px] top-4 w-4 h-4 rounded-full bg-surface-container ring-4 ring-background"></div>
+<div class="bg-surface border border-outline-variant rounded-lg p-md category-language transition-all duration-200 active:scale-[0.98]">
+<div class="flex justify-between items-start mb-xs">
+<span class="text-primary font-label-md text-label-md">14:00 - 15:30</span>
+<span class="bg-secondary-container text-on-secondary-container px-sm py-px rounded-full text-caption font-label-md">Lab 10</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Language Lab: French</h3>
+<div class="flex items-center gap-xs mt-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]" data-icon="person">person</span>
+<span class="text-body-md">Jean-Pierre Dubois</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Legend -->
+<div class="mt-xl p-md bg-surface-container-lowest border border-outline-variant rounded-xl mb-xl">
+<h4 class="text-label-md font-bold mb-md text-on-surface-variant flex items-center gap-sm uppercase">
+<span class="material-symbols-outlined text-[16px]" data-icon="info">info</span>
+                Category Legend
+            </h4>
+<div class="grid grid-cols-2 gap-sm">
+<div class="flex items-center gap-sm">
+<span class="w-3 h-3 rounded-full bg-[#2563eb]"></span>
+<span class="text-caption">STEM</span>
+</div>
+<div class="flex items-center gap-sm">
+<span class="w-3 h-3 rounded-full bg-[#7c3aed]"></span>
+<span class="text-caption">Humanities</span>
+</div>
+<div class="flex items-center gap-sm">
+<span class="w-3 h-3 rounded-full bg-[#db2777]"></span>
+<span class="text-caption">Arts</span>
+</div>
+<div class="flex items-center gap-sm">
+<span class="w-3 h-3 rounded-full bg-[#059669]"></span>
+<span class="text-caption">Language</span>
+</div>
+<div class="flex items-center gap-sm">
+<span class="w-3 h-3 rounded-full bg-[#d97706]"></span>
+<span class="text-caption">P.E.</span>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full flex justify-around items-center px-sm py-xs bg-surface-container-low border-t border-outline-variant z-50">
+<!-- Schedule - Active -->
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-lg py-xs active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_today" style="font-variation-settings: 'FILL' 1;">calendar_today</span>
+<span class="font-label-md text-label-md">Schedule</span>
+</a>
+<!-- Attendance -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-lg py-xs hover:bg-surface-container-high rounded-full active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="fact_check">fact_check</span>
+<span class="font-label-md text-label-md">Attendance</span>
+</a>
+<!-- Grades -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-lg py-xs hover:bg-surface-container-high rounded-full active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="grade">grade</span>
+<span class="font-label-md text-label-md">Grades</span>
+</a>
+<!-- Profile -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-lg py-xs hover:bg-surface-container-high rounded-full active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-md text-label-md">Profile</span>
+</a>
+</nav>
+<script>
+        function switchDay(element, day) {
+            // Remove active state from all buttons
+            document.querySelectorAll('.day-btn').forEach(btn => {
+                btn.classList.remove('active-day');
+                btn.classList.add('bg-surface-container-low', 'text-on-surface-variant');
+            });
+            
+            // Add active state to clicked button
+            element.classList.add('active-day');
+            element.classList.remove('bg-surface-container-low', 'text-on-surface-variant');
+            
+            // Interaction feedback
+            element.classList.add('scale-95');
+            setTimeout(() => element.classList.remove('scale-95'), 150);
+
+            // Mock re-ordering or reloading could go here
+            console.log(`Switched to ${day}`);
+        }
+    </script>
+</body></html>
