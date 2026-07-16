@@ -65,9 +65,8 @@ class ScheduleController extends Controller
             ], 422);
         }
 
-        $conflict = Schedule::whereHas('teacherSubject', fn($q) => $q->where('classroom_id',
-                TeacherSubject::find($validated['teacher_subject_id'])->classroom_id
-            ))
+        $teacherSubject = TeacherSubject::find($validated['teacher_subject_id']);
+        $conflict = Schedule::whereHas('teacherSubject', fn($q) => $q->where('classroom_id', $teacherSubject->classroom_id))
             ->where('day', $validated['day'])
             ->where('hour_order', $validated['hour_order'])
             ->exists();

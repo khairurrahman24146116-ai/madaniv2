@@ -26,5 +26,5 @@ Route::apiResource('subjects', SubjectController::class);
 Route::apiResource('teacher-subjects', TeacherSubjectController::class);
 Route::get('teacher-subjects/schedule', [TeacherSubjectController::class, 'getTeacherSchedule']);
 
-Route::apiResource('schedules', ScheduleController::class);
 Route::get('schedules/day', [ScheduleController::class, 'getDaySchedule']);
+Route::apiResource('schedules', ScheduleController::class);
