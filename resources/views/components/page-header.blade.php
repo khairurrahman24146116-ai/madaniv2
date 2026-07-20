@@ -30,8 +30,9 @@
                         $aIcon = $action['icon'] ?? null;
                         $aHref = $action['href'] ?? null;
                         $aDisabled = $action['disabled'] ?? false;
+                        $aOnclick = $action['onclick'] ?? null;
                     @endphp
-                    <x-button :variant="$aVariant" :size="$aSize" :icon="$aIcon" :href="$aHref" :disabled="$aDisabled">
+                    <x-button :variant="$aVariant" :size="$aSize" :icon="$aIcon" :href="$aHref" :disabled="$aDisabled" :onclick="$aOnclick">
                         {{ $action['label'] }}
                     </x-button>
                 @endforeach

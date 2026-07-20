@@ -58,6 +58,65 @@ class TeacherSubjectTest extends TestCase
         $response->assertStatus(403);
     }
 
+    public function test_show(): void
+    {
+        $guru = User::factory()->create(['role' => 'guru']);
+        $subject = Subject::factory()->create();
+        $classroom = Classroom::factory()->create();
+
+        $ts = TeacherSubject::create([
+            'user_id' => $guru->id,
+            'subject_id' => $subject->id,
+            'classroom_id' => $classroom->id,
+        ]);
+
+        $response = $this->withToken($this->adminToken)->getJson("/teacher-subjects/{$ts->id}");
+        $response->assertStatus(200)->assertJsonPath('success', true);
+    }
+
+    public function test_update(): void
+    {
+        $guru = User::factory()->create(['role' => 'guru']);
+        $subject = Subject::factory()->create();
+        $classroom = Classroom::factory()->create();
+        $newClassroom = Classroom::factory()->create();
+
+        $ts = TeacherSubject::create([
+            'user_id' => $guru->id,
+            'subject_id' => $subject->id,
+            'classroom_id' => $classroom->id,
+        ]);
+
+        $response = $this->withToken($this->adminToken)->putJson("/teacher-subjects/{$ts->id}", [
+            'user_id' => $guru->id,
+            'subject_id' => $subject->id,
+            'classroom_id' => $newClassroom->id,
+        ]);
+        $response->assertStatus(200)->assertJsonPath('success', true);
+        $this->assertEquals($newClassroom->id, $ts->fresh()->classroom_id);
+    }
+
+    public function test_update_validates_guru_role(): void
+    {
+        $nonGuru = User::factory()->create(['role' => 'admin']);
+        $guru = User::factory()->create(['role' => 'guru']);
+        $subject = Subject::factory()->create();
+        $classroom = Classroom::factory()->create();
+
+        $ts = TeacherSubject::create([
+            'user_id' => $guru->id,
+            'subject_id' => $subject->id,
+            'classroom_id' => $classroom->id,
+        ]);
+
+        $response = $this->withToken($this->adminToken)->putJson("/teacher-subjects/{$ts->id}", [
+            'user_id' => $nonGuru->id,
+            'subject_id' => $subject->id,
+            'classroom_id' => $classroom->id,
+        ]);
+        $response->assertStatus(422);
+    }
+
     public function test_destroy(): void
     {
         $guru = User::factory()->create(['role' => 'guru']);

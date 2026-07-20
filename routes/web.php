@@ -2,16 +2,13 @@
 
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\ClassroomController;
-use App\Http\Controllers\ScheduleController;
-use App\Http\Controllers\ScoreComponentController;
-use App\Http\Controllers\ScoreController;
-use App\Http\Controllers\StudentController;
-use App\Http\Controllers\SubjectController;
-use App\Http\Controllers\TeacherSubjectController;
+use App\Http\Controllers\PasswordResetController;
+use App\Models\ActivityLog;
 use App\Models\Attendance;
 use App\Models\Classroom;
 use App\Models\Schedule;
+use App\Models\Score;
+use App\Models\ScoreComponent;
 use App\Models\Student;
 use App\Models\Subject;
 use App\Models\TeacherSubject;
@@ -39,67 +36,194 @@ Route::get('/login', function () {
     return view('welcome');
 })->name('login');
 
+// ===== Password Reset =====
+Route::middleware('guest')->group(function () {
+    Route::get('/forgot-password', [PasswordResetController::class, 'forgotPassword'])->name('password.request');
+    Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink'])->name('password.email');
+    Route::get('/reset-password/{token}', [PasswordResetController::class, 'resetForm'])->name('password.reset');
+    Route::post('/reset-password', [PasswordResetController::class, 'updatePassword'])->name('password.update');
+});
+
 // ===== Halaman View (dengan middleware auth) =====
 Route::middleware('auth:sanctum')->group(function () {
 
-    Route::get('/app/dashboard', function () {
-        $schedules = Schedule::with('teacherSubject.subject', 'teacherSubject.classroom')
-            ->when(! auth()->user()->isAdmin(), fn ($query) => $query->whereHas('teacherSubject', fn ($q) => $q->where('user_id', auth()->id())))
-            ->get()
-            ->unique(fn ($schedule) => implode('|', [$schedule->day, $schedule->start_time, $schedule->teacher_subject_id]));
+    // ===== Wali Murid: Dashboard & Rapor (tidak di-nesting di dalam admin,guru) =====
+    Route::middleware('role:wali_murid')->group(function () {
+        Route::get('/app/wali-murid', function () {
+            $students = Student::with('classroom')->where('user_id', auth()->id())->get();
 
-        return view('dashboard', [
-            'todaySessions' => $schedules->count(),
-            'upcomingSchedules' => $schedules->take(3)->map(fn ($s) => [
-                'time' => $s->start_time.' - '.$s->end_time,
-                'subject' => $s->teacherSubject->subject->name ?? '',
-                'class' => $s->teacherSubject->classroom->name ?? '',
-                'type' => 'TEORI',
-            ]),
-        ]);
-    })->name('dashboard');
+            return view('wali-murid.dashboard', compact('students'));
+        })->name('wali-murid.dashboard');
 
-    Route::get('/app/attendances', function () {
-        $attendances = Attendance::with('student', 'schedule.teacherSubject.subject', 'schedule.teacherSubject.classroom')
-            ->orderBy('date', 'desc')->paginate(20);
+        Route::get('/app/wali-murid/rapor/{student}', function (Student $student) {
+            if ($student->user_id !== auth()->id()) {
+                abort(403);
+            }
 
-        return view('attendances.index', compact('attendances'));
-    })->name('attendances.index');
+            $subjects = Subject::with('scoreComponents')->get();
+            $rapor = collect();
 
-    Route::get('/app/schedules', function () {
-        $schedules = Schedule::with('teacherSubject.subject', 'teacherSubject.classroom', 'teacherSubject.user')->get();
-        $scheduleGrid = $schedules->map(fn ($s) => [
-            'day' => $s->day,
-            'start_time' => $s->start_time,
-            'end_time' => $s->end_time,
-            'subject' => $s->teacherSubject->subject->name ?? '',
-            'teacher' => $s->teacherSubject->user->name ?? '',
-            'teacher_short' => substr($s->teacherSubject->user->name ?? '', 0, 10),
-            'room' => 'Ruang '.($s->hour_order + 1),
-        ]);
+            foreach ($subjects as $subject) {
+                $scores = Score::where('student_id', $student->id)
+                    ->where('subject_id', $subject->id)
+                    ->get();
 
-        return view('schedules.index', compact('scheduleGrid'));
-    })->name('schedules.index');
+                if ($scores->isEmpty()) {
+                    continue;
+                }
 
-    Route::get('/app/schedules/mobile', function () {
-        $day = request('day', now()->locale('id')->isoFormat('dddd'));
-        $currentDay = strtolower($day);
-        $schedules = Schedule::with('teacherSubject.subject', 'teacherSubject.classroom', 'teacherSubject.user')
-            ->where('day', $day)
-            ->orWhereNull('day')
-            ->get();
+                $components = $subject->scoreComponents;
+                $componentData = [];
 
-        return view('schedules.mobile', compact('schedules', 'currentDay'));
-    })->name('schedules.mobile');
+                foreach ($components as $comp) {
+                    $compScores = $scores->where('component_code', $comp->code);
+                    if ($compScores->isEmpty()) {
+                        continue;
+                    }
 
-    Route::get('/app/scores/rapor-preview', function () {
-        $student = Student::with('classroom')->first();
+                    $avgValue = $compScores->avg('value');
+                    $weighted = ($avgValue * $comp->weight) / 100;
 
-        return view('scores.rapor-preview', compact('student'));
-    })->name('scores.rapor-preview');
+                    $componentData[] = [
+                        'name' => $comp->name,
+                        'value' => $avgValue,
+                        'weight' => $comp->weight,
+                        'weighted' => $weighted,
+                    ];
+                }
 
-    // ===== Guru & Admin: operasional mengajar =====
+                if (empty($componentData)) {
+                    continue;
+                }
+
+                $finalGrade = array_sum(array_column($componentData, 'weighted'));
+
+                $rapor->push([
+                    'subject' => $subject->name,
+                    'final_grade' => $finalGrade,
+                    'components' => $componentData,
+                ]);
+            }
+
+            return view('wali-murid.rapor', compact('student', 'rapor'));
+        })->name('wali-murid.rapor');
+    });
+
+    // ===== Guru & Admin: dashboard dan operasional mengajar =====
     Route::middleware('role:admin,guru')->group(function () {
+
+        Route::get('/app/dashboard', function () {
+            $schedules = Schedule::with('teacherSubject.subject', 'teacherSubject.classroom', 'teacherSubject.user')
+                ->where('day', now()->locale('id')->isoFormat('dddd'))
+                ->when(! auth()->user()->isAdmin(), fn ($query) => $query->whereHas('teacherSubject', fn ($q) => $q->where('user_id', auth()->id())))
+                ->get()
+                ->unique(fn ($schedule) => implode('|', [$schedule->day, $schedule->start_time, $schedule->teacher_subject_id]));
+
+            $activeSchedule = $schedules->first();
+
+            return view('dashboard', [
+                'todaySessions' => $schedules->count(),
+                'upcomingSchedules' => $schedules->take(3)->map(fn ($s) => [
+                    'time' => $s->start_time.' - '.$s->end_time,
+                    'subject' => $s->teacherSubject->subject->name ?? '',
+                    'class' => $s->teacherSubject->classroom->name ?? '',
+                    'type' => 'TEORI',
+                ]),
+                'activeClass' => $activeSchedule
+                    ? ($activeSchedule->teacherSubject->subject->name ?? '').' - '.($activeSchedule->teacherSubject->classroom->name ?? '')
+                    : null,
+                'activeRoom' => $activeSchedule ? ($activeSchedule->teacherSubject->classroom->name ?? '') : null,
+                'studentCount' => $activeSchedule?->teacherSubject->classroom->students()->count(),
+                'pendingGrades' => null,
+                'attendanceRate' => null,
+            ]);
+        })->name('dashboard');
+
+        Route::get('/app/attendances', function () {
+            $attendances = Attendance::with('student', 'schedule.teacherSubject.subject', 'schedule.teacherSubject.classroom')
+                ->orderBy('date', 'desc')->paginate(20);
+
+            return view('attendances.index', compact('attendances'));
+        })->name('attendances.index');
+
+        Route::get('/app/schedules', function () {
+            $schedules = Schedule::with('teacherSubject.subject', 'teacherSubject.classroom', 'teacherSubject.user')->get();
+            $scheduleGrid = $schedules->map(fn ($s) => [
+                'day' => $s->day,
+                'start_time' => $s->start_time,
+                'end_time' => $s->end_time,
+                'subject' => $s->teacherSubject->subject->name ?? '',
+                'teacher' => $s->teacherSubject->user->name ?? '',
+                'teacher_short' => substr($s->teacherSubject->user->name ?? '', 0, 10),
+                'room' => 'Ruang '.($s->hour_order + 1),
+            ]);
+
+            return view('schedules.index', compact('scheduleGrid'));
+        })->name('schedules.index');
+
+        Route::get('/app/schedules/mobile', function () {
+            $day = request('day', now()->locale('id')->isoFormat('dddd'));
+            $currentDay = strtolower($day);
+            $schedules = Schedule::with('teacherSubject.subject', 'teacherSubject.classroom', 'teacherSubject.user')
+                ->where('day', $day)
+                ->orWhereNull('day')
+                ->get();
+
+            return view('schedules.mobile', compact('schedules', 'currentDay'));
+        })->name('schedules.mobile');
+
+        Route::get('/app/scores/rapor-preview', function () {
+            $studentId = request('student_id', Student::first()?->id);
+            $student = Student::with('classroom')->find($studentId);
+            $semester = request('semester', 'ganjil');
+            $academicYear = request('academic_year', '2025/2026');
+
+            $grades = collect();
+            if ($student) {
+                $subjects = Subject::with('scoreComponents')->get();
+                foreach ($subjects as $subject) {
+                    $scores = Score::where('student_id', $student->id)
+                        ->where('subject_id', $subject->id)
+                        ->where('semester', $semester)
+                        ->where('academic_year', $academicYear)
+                        ->get();
+
+                    if ($scores->isEmpty()) {
+                        continue;
+                    }
+
+                    $total = 0;
+                    $totalWeight = 0;
+                    foreach ($subject->scoreComponents as $comp) {
+                        $compScores = $scores->where('component_code', $comp->code);
+                        if ($compScores->isEmpty()) {
+                            continue;
+                        }
+                        $avg = $compScores->avg('value');
+                        $total += $avg * ($comp->weight / 100);
+                        $totalWeight += $comp->weight;
+                    }
+
+                    if ($totalWeight > 0) {
+                        $finalScore = round(($total / $totalWeight) * 100, 2);
+                        $grades->push(['subject' => $subject->name, 'score' => $finalScore, 'kkm' => 70]);
+                    }
+                }
+
+                $attendanceStats = [
+                    'H' => Attendance::where('student_id', $student->id)->where('status', 'H')->count(),
+                    'S' => Attendance::where('student_id', $student->id)->where('status', 'S')->count(),
+                    'I' => Attendance::where('student_id', $student->id)->where('status', 'I')->count(),
+                    'A' => Attendance::where('student_id', $student->id)->where('status', 'A')->count(),
+                ];
+            } else {
+                $attendanceStats = ['H' => 0, 'S' => 0, 'I' => 0, 'A' => 0];
+            }
+
+            $gpa = $grades->isNotEmpty() ? round($grades->avg('score') / 25, 2) : null;
+
+            return view('scores.rapor-preview', compact('student', 'semester', 'academicYear', 'grades', 'attendanceStats', 'gpa'));
+        })->name('scores.rapor-preview');
 
         Route::get('/app/attendances/form', function () {
             $schedules = Schedule::with('teacherSubject.subject', 'teacherSubject.classroom')
@@ -146,81 +270,10 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 });
 
-// ===== API Auth Publik =====
-Route::post('auth/login', [AuthController::class, 'login']);
-
-// ===== API Auth Diperlukan (semua role) =====
+// ===== Web Admin CRUD Views (auth + admin only) =====
 Route::middleware('auth:sanctum')->group(function () {
-
-    Route::post('auth/logout', [AuthController::class, 'logout']);
-    Route::get('auth/me', [AuthController::class, 'me']);
-
-    // ===== Admin & Guru =====
-    Route::get('classrooms', [ClassroomController::class, 'index']);
-    Route::get('classrooms/{classroom}', [ClassroomController::class, 'show']);
-    Route::get('classrooms/{classroom}/students', [ClassroomController::class, 'getActiveStudents']);
-    Route::get('subjects', [SubjectController::class, 'index']);
-    Route::get('subjects/{subject}', [SubjectController::class, 'show']);
-    Route::get('students', [StudentController::class, 'index']);
-    Route::get('students/{student}', [StudentController::class, 'show']);
-    Route::get('schedules/day', [ScheduleController::class, 'getDaySchedule']);
-    Route::get('schedules', [ScheduleController::class, 'index']);
-    Route::get('schedules/{schedule}', [ScheduleController::class, 'show']);
-    Route::get('teacher-subjects', [TeacherSubjectController::class, 'index']);
-    Route::get('teacher-subjects/{teacher_subject}', [TeacherSubjectController::class, 'show']);
-    Route::get('teacher-subjects/schedule', [TeacherSubjectController::class, 'getTeacherSchedule']);
-
-    // ===== Read: semua role =====
-    Route::get('attendances', [AttendanceController::class, 'index']);
-    Route::get('scores', [ScoreController::class, 'index']);
-    Route::get('scores/rapor', [ScoreController::class, 'rapor']);
-    Route::get('scores/rapor-pdf', [ScoreController::class, 'raporPdf']);
-
-    // ===== Guru & Admin: write attendance & scores =====
-    Route::middleware('role:admin,guru')->group(function () {
-
-        Route::get('attendances/form', [AttendanceController::class, 'form'])->name('api.attendances.form');
-        Route::get('attendances/export-csv', [AttendanceController::class, 'exportCsv'])->name('attendances.export-csv');
-        Route::post('attendances', [AttendanceController::class, 'store']);
-        Route::put('attendances/{attendance}', [AttendanceController::class, 'update']);
-        Route::delete('attendances/{attendance}', [AttendanceController::class, 'destroy']);
-        Route::get('attendances/{attendance}', [AttendanceController::class, 'show']);
-
-        Route::get('scores/export-csv', [ScoreController::class, 'exportCsv'])->name('scores.export-csv');
-        Route::get('scores/final-grade', [ScoreController::class, 'finalGrade']);
-        Route::get('scores/batch-final-grade', [ScoreController::class, 'batchFinalGrade']);
-        Route::post('scores', [ScoreController::class, 'store']);
-        Route::post('scores/batch', [ScoreController::class, 'batchStore']);
-        Route::put('scores/{score}', [ScoreController::class, 'update']);
-        Route::delete('scores/{score}', [ScoreController::class, 'destroy']);
-        Route::get('scores/{score}', [ScoreController::class, 'show']);
-    });
-
-    // ===== Admin Only =====
     Route::middleware('role:admin')->group(function () {
-        Route::post('classrooms', [ClassroomController::class, 'store']);
-        Route::put('classrooms/{classroom}', [ClassroomController::class, 'update']);
-        Route::delete('classrooms/{classroom}', [ClassroomController::class, 'destroy']);
 
-        Route::post('students', [StudentController::class, 'store']);
-        Route::post('students/bulk-import', [StudentController::class, 'bulkImport']);
-        Route::put('students/{student}', [StudentController::class, 'update']);
-        Route::delete('students/{student}', [StudentController::class, 'destroy']);
-
-        Route::post('subjects', [SubjectController::class, 'store']);
-        Route::put('subjects/{subject}', [SubjectController::class, 'update']);
-        Route::delete('subjects/{subject}', [SubjectController::class, 'destroy']);
-
-        Route::post('teacher-subjects', [TeacherSubjectController::class, 'store']);
-        Route::delete('teacher-subjects/{teacher_subject}', [TeacherSubjectController::class, 'destroy']);
-
-        Route::post('schedules', [ScheduleController::class, 'store']);
-        Route::put('schedules/{schedule}', [ScheduleController::class, 'update']);
-        Route::delete('schedules/{schedule}', [ScheduleController::class, 'destroy']);
-
-        Route::apiResource('score-components', ScoreComponentController::class);
-
-        // ===== Web Admin CRUD Views =====
         Route::get('/app/admin', fn () => view('admin.dashboard'))->name('admin.dashboard');
 
         // Classrooms
@@ -380,10 +433,145 @@ Route::middleware('auth:sanctum')->group(function () {
             return redirect()->route('admin.teacher-subjects.index')->with('success', 'Mapping berhasil ditambahkan');
         })->name('admin.teacher-subjects.store');
 
-        Route::delete('/app/admin/teacher-subjects/{teacher_subject}', function (TeacherSubject $teacherSubject) {
-            $teacherSubject->delete();
+        Route::get('/app/admin/teacher-subjects/{teacher_subject}/edit', function (TeacherSubject $teacherSubject) {
+            $teachers = User::where('role', 'guru')->orderBy('name')->get();
+            $subjects = Subject::orderBy('name')->get();
+            $classrooms = Classroom::orderBy('grade')->orderBy('name')->get();
 
-            return redirect()->route('admin.teacher-subjects.index')->with('success', 'Mapping berhasil dihapus');
-        })->name('admin.teacher-subjects.destroy');
+            return view('admin.teacher-subjects.edit', compact('teacherSubject', 'teachers', 'subjects', 'classrooms'));
+        })->name('admin.teacher-subjects.edit');
+
+        Route::put('/app/admin/teacher-subjects/{teacher_subject}', function (Request $req, TeacherSubject $teacherSubject) {
+            $data = $req->validate([
+                'user_id' => 'required|exists:users,id',
+                'subject_id' => 'required|exists:subjects,id',
+                'classroom_id' => 'required|exists:classrooms,id',
+            ]);
+            $teacherSubject->update($data);
+
+            return redirect()->route('admin.teacher-subjects.index')->with('success', 'Mapping berhasil diperbarui');
+        })->name('admin.teacher-subjects.update');
+
+        // ===== Schedules =====
+        Route::get('/app/admin/schedules', function () {
+            $schedules = Schedule::with('teacherSubject.user', 'teacherSubject.subject', 'teacherSubject.classroom')
+                ->orderBy('day')->orderBy('hour_order')->paginate(50);
+
+            return view('admin.schedules.index', compact('schedules'));
+        })->name('admin.schedules.index');
+
+        Route::get('/app/admin/schedules/create', function () {
+            $mappings = TeacherSubject::with('user', 'subject', 'classroom')->orderBy('classroom_id')->get();
+
+            return view('admin.schedules.create', compact('mappings'));
+        })->name('admin.schedules.create');
+
+        Route::post('/app/admin/schedules', function (Request $req) {
+            $data = $req->validate([
+                'teacher_subject_id' => 'required|exists:teacher_subjects,id',
+                'day' => 'required|in:senin,selasa,rabu,kamis,jumat,sabtu',
+                'start_time' => 'required',
+                'end_time' => 'required',
+                'hour_order' => 'required|integer|min:1|max:4',
+            ]);
+            Schedule::create($data);
+
+            return redirect()->route('admin.schedules.index')->with('success', 'Jadwal berhasil ditambahkan');
+        })->name('admin.schedules.store');
+
+        Route::get('/app/admin/schedules/{schedule}/edit', function (Schedule $schedule) {
+            $mappings = TeacherSubject::with('user', 'subject', 'classroom')->orderBy('classroom_id')->get();
+
+            return view('admin.schedules.edit', compact('schedule', 'mappings'));
+        })->name('admin.schedules.edit');
+
+        Route::put('/app/admin/schedules/{schedule}', function (Request $req, Schedule $schedule) {
+            $data = $req->validate([
+                'teacher_subject_id' => 'required|exists:teacher_subjects,id',
+                'day' => 'required|in:senin,selasa,rabu,kamis,jumat,sabtu',
+                'start_time' => 'required',
+                'end_time' => 'required',
+                'hour_order' => 'required|integer|min:1|max:4',
+            ]);
+            $schedule->update($data);
+
+            return redirect()->route('admin.schedules.index')->with('success', 'Jadwal berhasil diperbarui');
+        })->name('admin.schedules.update');
+
+        Route::delete('/app/admin/schedules/{schedule}', function (Schedule $schedule) {
+            $schedule->delete();
+
+            return redirect()->route('admin.schedules.index')->with('success', 'Jadwal berhasil dihapus');
+        })->name('admin.schedules.destroy');
+
+        // ===== Score Components =====
+        Route::get('/app/admin/score-components', function () {
+            $components = ScoreComponent::with('subject')->orderBy('subject_id')->get();
+
+            return view('admin.score-components.index', compact('components'));
+        })->name('admin.score-components.index');
+
+        Route::get('/app/admin/score-components/create', function () {
+            $subjects = Subject::orderBy('name')->get();
+
+            return view('admin.score-components.create', compact('subjects'));
+        })->name('admin.score-components.create');
+
+        Route::post('/app/admin/score-components', function (Request $req) {
+            $data = $req->validate([
+                'subject_id' => 'required|exists:subjects,id',
+                'code' => 'required|in:tugas,ph,uts,uas',
+                'name' => 'required',
+                'weight' => 'required|numeric|min:0|max:100',
+                'semester' => 'required|in:ganjil,genap',
+                'academic_year' => 'required',
+            ]);
+            ScoreComponent::create($data);
+
+            return redirect()->route('admin.score-components.index')->with('success', 'Bobot nilai berhasil ditambahkan');
+        })->name('admin.score-components.store');
+
+        Route::get('/app/admin/score-components/{score_component}/edit', function (ScoreComponent $scoreComponent) {
+            $subjects = Subject::orderBy('name')->get();
+
+            return view('admin.score-components.edit', compact('scoreComponent', 'subjects'));
+        })->name('admin.score-components.edit');
+
+        Route::put('/app/admin/score-components/{score_component}', function (Request $req, ScoreComponent $scoreComponent) {
+            $data = $req->validate([
+                'subject_id' => 'required|exists:subjects,id',
+                'code' => 'required|in:tugas,ph,uts,uas',
+                'name' => 'required',
+                'weight' => 'required|numeric|min:0|max:100',
+                'semester' => 'required|in:ganjil,genap',
+                'academic_year' => 'required',
+            ]);
+            $scoreComponent->update($data);
+
+            return redirect()->route('admin.score-components.index')->with('success', 'Bobot nilai berhasil diperbarui');
+        })->name('admin.score-components.update');
+
+        Route::delete('/app/admin/score-components/{score_component}', function (ScoreComponent $scoreComponent) {
+            $scoreComponent->delete();
+
+            return redirect()->route('admin.score-components.index')->with('success', 'Bobot nilai berhasil dihapus');
+        })->name('admin.score-components.destroy');
+
+        // ===== Activity Logs =====
+        Route::get('/app/admin/activity-logs', function () {
+            $query = ActivityLog::with('user')->latest();
+
+            if ($action = request('action')) {
+                $query->where('action', $action);
+            }
+
+            if ($userId = request('user_id')) {
+                $query->where('user_id', $userId);
+            }
+
+            $logs = $query->paginate(50);
+
+            return view('admin.activity-logs.index', compact('logs'));
+        })->name('admin.activity-logs.index');
     });
 });

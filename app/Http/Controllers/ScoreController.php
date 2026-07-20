@@ -7,11 +7,13 @@ use App\Models\Score;
 use App\Models\ScoreComponent;
 use App\Models\Student;
 use App\Models\Subject;
+use App\Models\TeacherSubject;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
@@ -613,7 +615,7 @@ class ScoreController extends Controller
         ]);
 
         $user = $request->user();
-        $student = Student::with('classroom.user')->findOrFail($request->student_id);
+        $student = Student::with('classroom')->findOrFail($request->student_id);
 
         if ($user->isWaliMurid()) {
             $allowedIds = $user->students()->pluck('id')->toArray();
@@ -680,7 +682,8 @@ class ScoreController extends Controller
             'generated_at' => now()->toDateTimeString(),
         ]);
 
-        $filename = "rapor_{$student->nis}_{$semester}_{$academicYear}.pdf";
+        $safeAcademicYear = str_replace('/', '-', $academicYear);
+        $filename = "rapor_{$student->nis}_{$semester}_{$safeAcademicYear}.pdf";
 
         return $pdf->download($filename);
     }
@@ -740,6 +743,114 @@ class ScoreController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    public function importExcel(Request $request): JsonResponse
+    {
+        $request->validate([
+            'excel_file' => 'required|file|mimes:xlsx,xls,csv',
+            'component_code' => 'required|in:tugas,ph,uts,uas',
+            'teacher_subject_id' => 'required|exists:teacher_subjects,id',
+            'semester' => 'required|in:ganjil,genap',
+            'academic_year' => 'required|string|max:9',
+        ]);
+
+        $user = $request->user();
+        $teacherSubject = TeacherSubject::with(['subject', 'classroom'])->findOrFail($request->teacher_subject_id);
+
+        if (! $user->isAdmin() && $teacherSubject->user_id !== $user->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki akses ke mata pelajaran dan kelas ini',
+            ], 403);
+        }
+
+        $file = $request->file('excel_file');
+        $spreadsheet = IOFactory::load($file->getPathname());
+        $worksheet = $spreadsheet->getActiveSheet();
+        $rows = $worksheet->toArray();
+
+        if (count($rows) < 2) {
+            return response()->json([
+                'success' => false,
+                'message' => 'File Excel kosong atau tidak memiliki data',
+            ], 422);
+        }
+
+        $header = array_map('strtolower', $rows[0]);
+        $nisIndex = array_search('nis', $header);
+        $valueIndex = array_search('value', $header);
+
+        if ($nisIndex === false || $valueIndex === false) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Format file tidak valid. Header harus: nis, value',
+            ], 422);
+        }
+
+        $nisList = [];
+        $dataRows = [];
+        for ($i = 1; $i < count($rows); $i++) {
+            $nis = trim((string) $rows[$i][$nisIndex]);
+            $value = trim((string) $rows[$i][$valueIndex]);
+            if ($nis === '' || $value === '') {
+                continue;
+            }
+            $nisList[] = $nis;
+            $dataRows[] = ['nis' => $nis, 'value' => (float) $value];
+        }
+
+        if (empty($dataRows)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak ada data nilai yang valid dalam file',
+            ], 422);
+        }
+
+        $students = Student::whereIn('nis', $nisList)
+            ->where('classroom_id', $teacherSubject->classroom_id)
+            ->where('is_active', true)
+            ->get()
+            ->keyBy('nis');
+
+        $notFound = [];
+        $created = DB::transaction(function () use ($dataRows, $students, $teacherSubject, $request, $user) {
+            $results = [];
+            foreach ($dataRows as $row) {
+                $student = $students->get($row['nis']);
+                if (! $student) {
+                    $notFound[] = $row['nis'];
+
+                    continue;
+                }
+
+                $results[] = Score::create([
+                    'student_id' => $student->id,
+                    'subject_id' => $teacherSubject->subject_id,
+                    'component_code' => $request->component_code,
+                    'value' => min(100, max(0, $row['value'])),
+                    'teacher_id' => $user->id,
+                    'semester' => $request->semester,
+                    'academic_year' => $request->academic_year,
+                ]);
+            }
+
+            return $results;
+        });
+
+        $message = count($created).' nilai berhasil diimport';
+        if (! empty($notFound)) {
+            $message .= '. '.count($notFound).' NIS tidak ditemukan atau tidak sesuai kelas: '.implode(', ', array_unique($notFound));
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+            'data' => [
+                'imported' => count($created),
+                'skipped' => count($notFound),
+            ],
+        ]);
     }
 
     private function getSemesterDateRange(string $semester, string $academicYear): array

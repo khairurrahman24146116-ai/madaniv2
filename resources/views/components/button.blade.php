@@ -1,13 +1,14 @@
 @props([
-    'variant' => 'primary', // primary, secondary, outline, ghost, error
-    'size' => 'md', // sm, md, lg, xl
-    'type' => 'button', // button, submit, reset
+    'variant' => 'primary',
+    'size' => 'md',
+    'type' => 'button',
     'disabled' => false,
     'icon' => null,
-    'iconPosition' => 'left', // left, right
+    'iconPosition' => 'left',
     'fullWidth' => false,
     'class' => '',
-    'href' => null, // if set, renders as <a> tag
+    'href' => null,
+    'onclick' => null,
 ])
 
 @php
@@ -43,7 +44,8 @@
 @if($href)
     <a href="{{ $href }}"
        class="{{ $baseClasses }} {{ $variantClass }} {{ $sizeClass }} {{ $widthClass }} {{ $class }}"
-       @if($disabled) tabindex="-1" aria-disabled="true" @endif>
+       @if($disabled) tabindex="-1" aria-disabled="true" @endif
+       @if($onclick) onclick="{{ $onclick }}" @endif>
         @if($icon && $iconPosition === 'left')
             <span class="material-symbols-outlined {{ $iconClass }}">{{ $icon }}</span>
         @endif
@@ -54,8 +56,9 @@
     </a>
 @else
     <button type="{{ $type }}"
-            class="{{ $baseClasses }} {{ $variantClass }} {{ $sizeClass }} {{ $widthClass }} {{ $class }}"
-            @if($disabled) disabled @endif>
+            {{ $attributes->class([$baseClasses, $variantClass, $sizeClass, $widthClass])->merge(['class' => $class]) }}
+            @if($disabled) disabled @endif
+            @if($onclick) onclick="{{ $onclick }}" @endif>
         @if($icon && $iconPosition === 'left')
             <span class="material-symbols-outlined {{ $iconClass }}">{{ $icon }}</span>
         @endif

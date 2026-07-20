@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Attendance;
 use App\Models\Schedule;
 use App\Models\Student;
 use App\Models\User;
@@ -15,12 +16,16 @@ class AttendanceTest extends TestCase
 
     private string $guruToken;
 
+    private string $adminToken;
+
     protected function setUp(): void
     {
         parent::setUp();
         $this->seed(DatabaseSeeder::class);
         $guru = User::where('email', 'ahmad@madani.id')->first();
         $this->guruToken = $guru->createToken('test')->plainTextToken;
+        $admin = User::where('email', 'admin@madani.id')->first();
+        $this->adminToken = $admin->createToken('test')->plainTextToken;
     }
 
     public function test_form(): void
@@ -38,7 +43,6 @@ class AttendanceTest extends TestCase
         $scheduleId = Schedule::first()->id;
         $students = Student::where('classroom_id', 1)->pluck('id');
 
-        // Use a different date to avoid conflict with seeder data
         $response = $this->withToken($this->guruToken)
             ->postJson('/attendances', [
                 'schedule_id' => $scheduleId,
@@ -56,6 +60,34 @@ class AttendanceTest extends TestCase
     {
         $response = $this->withToken($this->guruToken)->getJson('/attendances');
         $response->assertStatus(200);
+    }
+
+    public function test_show(): void
+    {
+        $attendance = Attendance::first();
+
+        $response = $this->withToken($this->guruToken)->getJson("/attendances/{$attendance->id}");
+        $response->assertStatus(200)->assertJsonPath('success', true);
+    }
+
+    public function test_update(): void
+    {
+        $attendance = Attendance::first();
+
+        $response = $this->withToken($this->guruToken)->putJson("/attendances/{$attendance->id}", [
+            'status' => 'S',
+            'notes' => 'Sakit demam',
+        ]);
+        $response->assertStatus(200)->assertJsonPath('success', true);
+        $this->assertEquals('S', $attendance->fresh()->status);
+    }
+
+    public function test_destroy(): void
+    {
+        $attendance = Attendance::first();
+
+        $response = $this->withToken($this->guruToken)->deleteJson("/attendances/{$attendance->id}");
+        $response->assertStatus(200)->assertJsonPath('success', true);
     }
 
     public function test_export_csv(): void

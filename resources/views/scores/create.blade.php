@@ -110,15 +110,17 @@
 
 {{-- Import Modal --}}
 <x-modal id="import-modal" title="Import Nilai dari Excel" size="md">
-    <form id="import-form" class="space-y-4">
-        <x-form-input type="file" name="excel_file" label="File Excel (.xlsx)" required hint="Format: NIS, Nilai (header: nis,value)" accept=".xlsx,.xls" />
-        <x-form-input type="hidden" name="component_code" id="import-component" value="tugas" />
-        <x-form-input type="hidden" name="teacher_subject_id" id="import-ts" value="{{ $selectedMapping?->id }}" />
-        <x-form-input type="hidden" name="semester" value="ganjil" />
-        <x-form-input type="hidden" name="academic_year" value="2025/2026" />
+    <form id="import-form" action="{{ route('scores.import') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+        @csrf
+        <x-form-input type="file" name="excel_file" label="File Excel (.xlsx)" required hint="Format: NIS, Nilai (header: nis,value)" accept=".xlsx,.xls,.csv" />
+        <input type="hidden" name="component_code" id="import-component" value="tugas">
+        <input type="hidden" name="teacher_subject_id" id="import-ts" value="{{ $selectedMapping?->id }}">
+        <input type="hidden" name="semester" value="ganjil">
+        <input type="hidden" name="academic_year" value="2025/2026">
+        <p id="import-feedback" class="text-xs text-on-surface-variant"></p>
         <div class="flex justify-end gap-sm pt-4">
             <x-button variant="ghost" type="button" onclick="closeModal('import-modal')">Batal</x-button>
-            <x-button variant="primary" type="submit" icon="upload_file">Import</x-button>
+            <x-button variant="primary" type="submit" icon="upload_file" id="import-submit">Import</x-button>
         </div>
     </form>
 </x-modal>
@@ -217,6 +219,46 @@
             saveButton.innerHTML = '<span class="material-symbols-outlined">save</span> Simpan Nilai';
         } finally {
             saveButton.disabled = false;
+        }
+    });
+
+    const importForm = document.getElementById('import-form');
+    const importFeedback = document.getElementById('import-feedback');
+    const importSubmit = document.getElementById('import-submit');
+
+    importForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(importForm);
+        formData.set('component_code', component);
+        formData.set('teacher_subject_id', document.getElementById('teacher_subject_id')?.value || '');
+
+        importSubmit.disabled = true;
+        importSubmit.innerHTML = '<span class="material-symbols-outlined animate-spin">refresh</span> Mengimport...';
+        importFeedback.textContent = '';
+        importFeedback.className = 'text-xs text-on-surface-variant';
+
+        try {
+            const response = await fetch(importForm.action, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                },
+                body: formData,
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message || 'Import gagal.');
+
+            importFeedback.textContent = result.message;
+            importFeedback.className = 'text-xs text-green-700 mt-sm';
+            importSubmit.innerHTML = '<span class="material-symbols-outlined">check_circle</span> Selesai';
+            setTimeout(() => location.reload(), 1500);
+        } catch (error) {
+            importFeedback.textContent = error.message;
+            importFeedback.className = 'text-xs text-error mt-sm';
+            importSubmit.innerHTML = '<span class="material-symbols-outlined">upload_file</span> Import';
+        } finally {
+            importSubmit.disabled = false;
         }
     });
 

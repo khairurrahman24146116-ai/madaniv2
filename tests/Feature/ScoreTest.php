@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Classroom;
+use App\Models\Score;
 use App\Models\Student;
 use App\Models\Subject;
 use App\Models\TeacherSubject;
@@ -13,9 +14,9 @@ use Tests\TestCase;
 
 class ScoreTest extends TestCase
 {
-    use RefreshDatabase;
-
     private string $guruToken;
+
+    use RefreshDatabase;
 
     protected function setUp(): void
     {
@@ -79,10 +80,47 @@ class ScoreTest extends TestCase
         $response->assertStatus(403);
     }
 
+    public function test_show(): void
+    {
+        $score = Score::first();
+
+        $response = $this->withToken($this->guruToken)->getJson("/scores/{$score->id}");
+        $response->assertStatus(200)->assertJsonPath('success', true);
+    }
+
+    public function test_update(): void
+    {
+        $score = Score::first();
+
+        $response = $this->withToken($this->guruToken)->putJson("/scores/{$score->id}", [
+            'value' => 95,
+        ]);
+        $response->assertStatus(200)->assertJsonPath('success', true);
+        $this->assertEquals(95, $score->fresh()->value);
+    }
+
+    public function test_destroy(): void
+    {
+        $score = Score::first();
+
+        $response = $this->withToken($this->guruToken)->deleteJson("/scores/{$score->id}");
+        $response->assertStatus(200)->assertJsonPath('success', true);
+    }
+
     public function test_final_grade(): void
     {
         $response = $this->withToken($this->guruToken)
             ->getJson('/scores/final-grade?student_id=1&subject_id=1&semester=ganjil&academic_year=2025/2026');
+        $response->assertStatus(200)->assertJsonPath('success', true);
+    }
+
+    public function test_batch_final_grade(): void
+    {
+        $subject = Subject::first();
+        $classroom = Classroom::first();
+
+        $response = $this->withToken($this->guruToken)
+            ->getJson('/scores/batch-final-grade?classroom_id='.$classroom->id.'&subject_id='.$subject->id.'&semester=ganjil&academic_year=2025/2026');
         $response->assertStatus(200)->assertJsonPath('success', true);
     }
 
@@ -91,6 +129,48 @@ class ScoreTest extends TestCase
         $response = $this->withToken($this->guruToken)
             ->getJson('/scores/rapor?student_id=1&semester=ganjil&academic_year=2025/2026');
         $response->assertStatus(200)->assertJsonPath('success', true);
+        $response->assertJsonStructure([
+            'success',
+            'data' => [
+                'student' => ['id', 'name', 'nis'],
+                'classroom' => ['id', 'name', 'grade'],
+                'semester',
+                'academic_year',
+                'subjects' => [
+                    '*' => ['subject_id', 'subject_name', 'subject_code', 'components', 'total_weight', 'final_grade', 'passed'],
+                ],
+                'overall_average',
+                'passed_all',
+                'attendance' => ['total', 'H', 'S', 'I', 'A'],
+                'generated_at',
+            ],
+        ]);
+        $this->assertNotNull($response->json('data.overall_average'));
+        $this->assertIsArray($response->json('data.subjects'));
+        $this->assertGreaterThan(0, count($response->json('data.subjects')));
+    }
+
+    public function test_rapor_wali_murid_can_only_see_own_child(): void
+    {
+        $student = Student::find(1);
+        $waliToken = $student->user->createToken('test')->plainTextToken;
+
+        $response = $this->withToken($waliToken)
+            ->getJson('/scores/rapor?student_id=1&semester=ganjil&academic_year=2025/2026');
+        $response->assertStatus(200)->assertJsonPath('success', true);
+
+        $response = $this->withToken($waliToken)
+            ->getJson('/scores/rapor?student_id=2&semester=ganjil&academic_year=2025/2026');
+        $response->assertStatus(403);
+    }
+
+    public function test_rapor_pdf(): void
+    {
+        $response = $this->withToken($this->guruToken)
+            ->get('/scores/rapor-pdf?student_id=1&semester=ganjil&academic_year=2025/2026');
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Type', 'application/pdf');
+        $this->assertStringContainsString('rapor_1001_ganjil_2025-2026.pdf', $response->headers->get('Content-Disposition'));
     }
 
     public function test_export_csv(): void

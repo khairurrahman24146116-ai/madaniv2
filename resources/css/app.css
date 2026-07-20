@@ -193,7 +193,7 @@
     }
 
     .status-choice:has(input[value="H"]:checked) { background: #059669; }
-    .status-choice:has(input[value="S"]:checked),
-    .status-choice:has(input[value="I"]:checked) { background: #d97706; }
+    .status-choice:has(input[value="S"]:checked) { background: #d97706; }
+    .status-choice:has(input[value="I"]:checked) { background: #3b82f6; }
     .status-choice:has(input[value="A"]:checked) { background: #e11d48; }
 }

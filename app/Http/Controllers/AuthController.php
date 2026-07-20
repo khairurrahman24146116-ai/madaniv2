@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\ActivityLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -35,6 +36,8 @@ class AuthController extends Controller
 
         $token = $user->createToken('madani-sms', [$user->role])->plainTextToken;
 
+        ActivityLogger::log('login', 'Login API: '.$user->name);
+
         return response()->json([
             'success' => true,
             'message' => 'Login berhasil',
@@ -60,7 +63,11 @@ class AuthController extends Controller
                 return back()->withErrors(['email' => 'Akun Anda dinonaktifkan']);
             }
 
-            return redirect()->intended(route('dashboard'));
+            ActivityLogger::log('login', 'Login web: '.$user->name);
+
+            $redirectRoute = $user->isWaliMurid() ? 'wali-murid.dashboard' : 'dashboard';
+
+            return redirect()->intended(route($redirectRoute));
         }
 
         return back()->withErrors(['email' => 'Email atau password salah']);
@@ -68,6 +75,7 @@ class AuthController extends Controller
 
     public function logout(Request $request): JsonResponse
     {
+        ActivityLogger::log('logout', 'Logout API: '.$request->user()->name);
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([
@@ -78,6 +86,7 @@ class AuthController extends Controller
 
     public function logoutWeb(Request $request)
     {
+        ActivityLogger::log('logout', 'Logout web: '.auth()->user()?->name);
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

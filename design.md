@@ -1,155 +1,177 @@
-# Design System — Madani-SMS
-### Sistem Informasi Manajemen SMA (Sore) Dayah Madani Al-Aziziyah
-*Modul: Absensi Digital & Jadwal Pelajaran*
-
+---
+name: Academic Clarity
+colors:
+  surface: '#f7f9fb'
+  surface-dim: '#d8dadc'
+  surface-bright: '#f7f9fb'
+  surface-container-lowest: '#ffffff'
+  surface-container-low: '#f2f4f6'
+  surface-container: '#eceef0'
+  surface-container-high: '#e6e8ea'
+  surface-container-highest: '#e0e3e5'
+  on-surface: '#191c1e'
+  on-surface-variant: '#45474c'
+  inverse-surface: '#2d3133'
+  inverse-on-surface: '#eff1f3'
+  outline: '#75777d'
+  outline-variant: '#c5c6cd'
+  surface-tint: '#545f73'
+  primary: '#091426'
+  on-primary: '#ffffff'
+  primary-container: '#1e293b'
+  on-primary-container: '#8590a6'
+  inverse-primary: '#bcc7de'
+  secondary: '#0058be'
+  on-secondary: '#ffffff'
+  secondary-container: '#2170e4'
+  on-secondary-container: '#fefcff'
+  tertiary: '#00190e'
+  on-tertiary: '#ffffff'
+  tertiary-container: '#00301e'
+  on-tertiary-container: '#00a472'
+  error: '#ba1a1a'
+  on-error: '#ffffff'
+  error-container: '#ffdad6'
+  on-error-container: '#93000a'
+  primary-fixed: '#d8e3fb'
+  primary-fixed-dim: '#bcc7de'
+  on-primary-fixed: '#111c2d'
+  on-primary-fixed-variant: '#3c475a'
+  secondary-fixed: '#d8e2ff'
+  secondary-fixed-dim: '#adc6ff'
+  on-secondary-fixed: '#001a42'
+  on-secondary-fixed-variant: '#004395'
+  tertiary-fixed: '#6ffbbe'
+  tertiary-fixed-dim: '#4edea3'
+  on-tertiary-fixed: '#002113'
+  on-tertiary-fixed-variant: '#005236'
+  background: '#f7f9fb'
+  on-background: '#191c1e'
+  surface-variant: '#e0e3e5'
+typography:
+  headline-lg:
+    fontFamily: Inter
+    fontSize: 32px
+    fontWeight: '700'
+    lineHeight: 40px
+    letterSpacing: -0.02em
+  headline-lg-mobile:
+    fontFamily: Inter
+    fontSize: 24px
+    fontWeight: '700'
+    lineHeight: 32px
+    letterSpacing: -0.02em
+  headline-md:
+    fontFamily: Inter
+    fontSize: 24px
+    fontWeight: '600'
+    lineHeight: 32px
+    letterSpacing: -0.01em
+  headline-sm:
+    fontFamily: Inter
+    fontSize: 20px
+    fontWeight: '600'
+    lineHeight: 28px
+  body-lg:
+    fontFamily: Inter
+    fontSize: 18px
+    fontWeight: '400'
+    lineHeight: 28px
+  body-md:
+    fontFamily: Inter
+    fontSize: 16px
+    fontWeight: '400'
+    lineHeight: 24px
+  body-sm:
+    fontFamily: Inter
+    fontSize: 14px
+    fontWeight: '400'
+    lineHeight: 20px
+  label-md:
+    fontFamily: Inter
+    fontSize: 14px
+    fontWeight: '600'
+    lineHeight: 20px
+    letterSpacing: 0.01em
+  label-sm:
+    fontFamily: Inter
+    fontSize: 12px
+    fontWeight: '500'
+    lineHeight: 16px
+rounded:
+  sm: 0.25rem
+  DEFAULT: 0.5rem
+  md: 0.75rem
+  lg: 1rem
+  xl: 1.5rem
+  full: 9999px
+spacing:
+  base: 4px
+  xs: 4px
+  sm: 8px
+  md: 16px
+  lg: 24px
+  xl: 32px
+  container-margin: 24px
+  gutter: 16px
 ---
 
-## 1. Ringkasan Produk
+## Brand & Style
 
-Madani-SMS mendigitalisasi absensi per jam pelajaran dan jadwal blok sore (14.00–16.00 WIB) untuk SMA formal di lingkungan Dayah Madani Al-Aziziyah, menggantikan proses manual yang memakan waktu KBM yang sudah sangat terbatas (hanya 2 jam/hari).
+The design system is engineered for the high-cognitive-load environment of modern education. It balances professional authority with a welcoming, accessible atmosphere. The target audience—K-12 and higher education teachers—requires an interface that prioritizes data density without sacrificing legibility or emotional calm.
 
-**Tiga peran pengguna:**
-| Peran | Kebutuhan Utama |
-|---|---|
-| **Guru Bidang Studi** | Absensi cepat (<1 menit) sebelum mengajar, input nilai per komponen (Tugas, Harian, UTS, UAS) |
-| **Admin / Kepala Sekolah** | Mapping guru↔mapel, atur jadwal blok sore, pantau kehadiran guru, ekspor e-rapor PDF |
-| **Wali Murid / Santri** | Memantau absensi & nilai anak secara periodik dari luar dayah |
+The style is **Corporate Modern** with a focus on functional clarity. It utilizes heavy whitespace to reduce visual noise and a structured information hierarchy to help teachers quickly transition between administrative tasks and student engagement. The aesthetic response is one of reliability, organization, and quiet encouragement.
 
-**Target performa:** halaman absensi termuat < 2 detik di 3G/4G, sinkron submit < 3 detik, mobile-first, RBAC per kelas/mapel guru, backup harian jam 17.00 WIB.
+## Colors
 
----
+This design system utilizes a high-contrast palette to ensure accessibility and professional tone.
+- **Primary (Navy Blue):** Used for navigation, headers, and core brand elements to establish trust and authority.
+- **Secondary (Soft Blue):** Reserved for primary actions, links, and selection states, providing a clear path for user interaction.
+- **Accent (Emerald Green):** Dedicated to positive indicators, progress completion, and success states to provide encouraging feedback.
+- **Background (Light Gray/White):** A cool-toned neutral base that prevents eye strain during long grading sessions.
+- **Semantic Colors:** Use standard reds (#EF4444) for alerts/late assignments and ambers (#F59E0B) for pending tasks.
 
-## 2. Dua Mode Desain
+## Typography
 
-Repo ini berisi **dua sistem desain paralel** untuk produk yang sama, dipakai sesuai konteks perangkat/pengguna:
+Inter is chosen for its exceptional legibility in data-heavy environments. The system uses a disciplined type scale to differentiate between administrative content and instructional data.
 
-| | ☀️ Academic Precision (Light) | 🌙 Academic Precision Dark |
-|---|---|---|
-| **Kepribadian** | Authoritative, dependable, terorganisir — "structured calm" | Intelektual, fokus malam hari — "nocturnal focus / digital sanctuary" |
-| **Font Headline** | Inter (Sans, 700) | Source Serif 4 (Serif, 700) |
-| **Font Body** | Inter | Hanken Grotesk |
-| **Font Label/Data** | Inter (uppercase, tracking) | JetBrains Mono (monospace) |
-| **Primary Color** | `#2563EB` Trust Blue | `#60A5FA` Electric Blue (softened) |
-| **Background** | `#F7F9FB` off-white | `#0B1326` deep navy / ink |
-| **Radius dasar** | 8px (rounded, approachable) | 4px (rectilinear, "arsitektural") |
-| **Depth** | Soft shadow (blur+opacity) | Tonal layering + 1px outline, tanpa shadow |
-| **Dipakai di** | `absensi_siswa`, `jadwal_pelajaran`, `absensi_siswa_mobile`, `jadwal_pelajaran_mobile`, dashboard & modul Madani-SMS (light) | `absensi_siswa_mobile_dark`, `jadwal_pelajaran_mobile_dark` |
+- **Headlines:** Use Bold or Semi-Bold weights with slight negative letter-spacing to appear more compact and authoritative.
+- **Body Text:** Standardized at 16px for optimal reading of student feedback and reports. 
+- **Labels:** Used for metadata, table headers, and form captions. Use Medium or Semi-Bold weights to ensure they are distinct from input text.
+- **Numerical Data:** Tabular lining should be enabled where possible for alignment in gradebooks and attendance rosters.
 
-Spesifikasi token lengkap (colors, typography, spacing) ada di masing-masing:
-- `academic_precision/DESIGN.md` (light)
-- `academic_precision_dark/DESIGN.md` (dark)
+## Layout & Spacing
 
----
+The design system employs a **Fluid Grid** model with a 12-column structure for desktop. 
 
-## 3. Warna
+- **Layout Structure:** A persistent sidebar (240px-280px) houses primary navigation, while the main content area utilizes dynamic scaling.
+- **Rhythm:** An 8px linear scale (4px, 8px, 16px, 24px, 32px, 48px, 64px) governs all padding and margins. 
+- **Mobile Adaptivity:** On mobile devices, the 12-column grid collapses to a single column with 16px side margins. The sidebar transitions to a bottom navigation bar or a hidden drawer menu.
+- **Data Density:** Use "Medium" density for general dashboards and "High" density (8px spacing) for gradebooks and student lists.
 
-### Light Mode
-| Token | Hex | Peran |
-|---|---|---|
-| Primary | `#2563EB` | Tombol utama, nav aktif, focus state |
-| Secondary | `#64748B` | Teks & ikon pendukung |
-| Surface / Card | `#FFFFFF` | Kartu, container |
-| Background | `#F8FAFC` | Kanvas utama |
-| Border | `#E2E8F0` | Garis pemisah kartu (1px) |
-| Presence (Hadir) | Emerald (bg muda, teks hijau tua) | Badge kehadiran |
-| Permit (Izin/Sakit) | Amber (bg muda, teks amber tua) | Badge izin/sakit |
-| Absence (Alpa) | Rose (bg muda, teks merah tua) | Badge alpa |
+## Elevation & Depth
 
-### Dark Mode
-| Token | Hex | Peran |
-|---|---|---|
-| Primary | `#60A5FA` | Tombol utama, aksen fokus |
-| Background (Ink) | `#020617` / `#0B1326` | Kanvas terjauh |
-| Surface Level 1 | `#0F172A` | Card & container default |
-| Surface Level 2 | `#1E293B` | Hover / modal / elevated |
-| Outline | `#334155` (Slate 700) | Border 1px pengganti shadow |
-| Text | Off-white pada headline serif, Slate untuk body |
+To maintain a modern, clean appearance, depth is conveyed through **Tonal Layers** and **Ambient Shadows**.
 
-> Palet semantik absensi (Hadir/Izin/Sakit/Alpa) tetap konsisten secara fungsi di kedua mode — hanya kontras & saturasi disesuaikan untuk latar gelap/terang.
+- **Level 0 (Background):** #F8FAFC. The canvas for all content.
+- **Level 1 (Cards/Surface):** White (#FFFFFF) with a very soft, diffused shadow (0px 4px 6px -1px rgba(0, 0, 0, 0.05)). Used for primary dashboard widgets and content blocks.
+- **Level 2 (Hover/Active):** Slightly deeper shadow (0px 10px 15px -3px rgba(0, 0, 0, 0.1)) to indicate interactivity.
+- **Dividers:** 1px borders using #E2E8F0 are preferred over shadows for internal partitioning within cards to keep the UI flat and organized.
 
----
+## Shapes
 
-## 4. Tipografi
+The shape language is defined by "Rounded" parameters (8px - 16px). This approach softens the professional Navy Blue palette, making the interface feel more approachable for an educational setting.
 
-**Light Mode — Inter (single family, semua berat):**
-- `headline-xl` 36px/700 — judul halaman
-- `headline-lg` 24px/600 (20px di mobile) — judul kartu/section
-- `headline-md` 18px/600
-- `body-lg` 16px/400, `body-md` 14px/400
-- `label-md` 12px/600, uppercase, tracking 0.05em — label status, header tabel
-- `caption` 12px/400 — metadata
+- **Standard Components:** Buttons, input fields, and small UI elements use 8px (0.5rem) corner radii.
+- **Large Containers:** Dashboard cards and modal windows use 12px or 16px (1rem) corner radii to emphasize the "contained" and organized nature of the information.
+- **Iconography:** Use icons with rounded terminals and soft corners to match the UI's roundedness.
 
-**Dark Mode — Kombinasi 3 font:**
-- **Source Serif 4** (headline) — kesan "terbit/tercetak", otoritatif
-- **Hanken Grotesk** (body) — teks antarmuka & baca panjang
-- **JetBrains Mono** (label & data tabular) — jam pelajaran, angka nilai, kode kelas → memperkuat kesan presisi
+## Components
 
----
-
-## 5. Layout & Grid
-
-- Grid **12 kolom** desktop, **4 kolom** mobile.
-- Baseline spacing **4px**; padding komponen umum 16px (md) / 24px (lg).
-- **Grid Jadwal Pelajaran:** baris = jam pelajaran (blok sore 14.00–16.00), kolom = hari — pada mobile berubah jadi tampilan **List-Agenda vertikal** per hari.
-- Margin luar: 48px (light) / 64px (dark) di desktop, 16px di mobile.
-- Mobile-first wajib untuk halaman Absensi & Input Nilai (dipakai guru langsung dari kelas via smartphone).
-
----
-
-## 6. Elevasi
-
-| Level | Light | Dark |
-|---|---|---|
-| 0 – Base | `#F8FAFC` flat | `#020617` flat |
-| 1 – Card | Putih + border 1px `#E2E8F0`, tanpa shadow | `#0F172A` + top-border 2px "ledger accent" |
-| 2 – Hover/Interaksi | Shadow blur 4px, opacity 10%, offset-y 2px | Background shift ke `#1E293B` |
-| 3 – Modal/Popover | Shadow blur 12px, opacity 15% | Outline glow primary 10–15% opacity |
-
----
-
-## 7. Shape
-
-| Elemen | Light | Dark |
-|---|---|---|
-| Checkbox/elemen kecil | 4px | — |
-| Button, Input, Card | 8px | 4px |
-| Modal/Banner besar | 12–16px | 8px |
-| Badge status | Pill penuh (999px) | Hindari pill kecuali toggle ikon |
-
-Dark mode sengaja **lebih rektilinear** (radius lebih kecil, tanpa pill) untuk menegaskan nuansa data/akademik yang presisi, dibanding light mode yang lebih "approachable".
-
----
-
-## 8. Komponen Kunci
-
-- **Badge Absensi** — pill (light) / mono chip (dark), 4 status: **H**adir (hijau/emerald), **S**akit & **I**zin (amber), **A**lpa (merah/rose). Muncul konsisten di semua halaman absensi & e-rapor.
-- **Kartu Jadwal** — accent border kiri berwarna per kategori mapel, blok waktu terkunci ke rentang 14.00–16.00 WIB.
-- **Tabel Nilai** — kolom komponen (Tugas / Harian / UTS / UAS) + Nilai Akhir terhitung otomatis; header pakai `label-md`/`label-caps`, angka pakai font tabular (mono di dark mode).
-- **Form Input** — border 1px, berubah ke warna primary saat fokus; label di atas field.
-- **Tombol** — Primary: solid primary color + teks kontras. Secondary: ghost/outline.
-- **Preview E-Rapor** — layout mirip dokumen cetak resmi, siap ekspor PDF.
-
----
-
-## 9. Peta Halaman (Screens dalam Zip)
-
-| File / Folder | Deskripsi | Mode |
-|---|---|---|
-| `dashboard_guru_madani_sms` | Dashboard ringkasan guru: jadwal hari ini, status absensi, akses cepat | Light |
-| `absensi_real_time_madani_sms` | Form absensi per jam pelajaran, checklist H/S/I/A | Light |
-| `input_nilai_madani_sms` | Input nilai Tugas/Harian/UTS/UAS per bidang studi | Light |
-| `pratinjau_e_rapor_madani_sms` | Preview e-rapor gabungan sebelum ekspor PDF | Light |
-| `absensi_siswa` (+ `_mobile`, `_mobile_dark`) | Manajemen kehadiran siswa, desktop & mobile | Light / Dark |
-| `jadwal_pelajaran` (+ `_mobile`, `_mobile_dark`) | Jadwal pelajaran mingguan, grid desktop & agenda mobile | Light / Dark |
-
-> Catatan: sebagian file (`absensi_siswa*`, `jadwal_pelajaran*`) memakai judul generik "EduFlow Pro / EduManage" — ini adalah versi eksplorasi awal Stitch sebelum branding difinalkan menjadi **Madani-SMS**. Semua tetap mengikuti token desain `academic_precision` yang sama.
-
----
-
-## 10. Prinsip Desain
-
-1. **Kecepatan di atas segalanya** — jam KBM sore hanya 2 jam; setiap layar absensi harus bisa diselesaikan dalam hitungan detik, kontras tinggi, teks ≥12pt.
-2. **Struktur ketat, bukan dekoratif** — grid & tipografi konsisten mengurangi beban kognitif guru yang terburu-buru.
-3. **Semantik warna yang jelas** — status kehadiran & nilai harus bisa dikenali sekilas tanpa membaca teks.
-4. **Mobile-first untuk guru, desktop-rich untuk admin** — dashboard/e-rapor lebih kaya data di desktop, sementara absensi dioptimalkan untuk smartphone di kelas.
-5. **Dua mode, satu identitas** — light untuk siang hari/penggunaan aktif kelas, dark untuk kerja administratif/analisis malam hari — tetap terasa sebagai satu produk yang sama.
+- **Buttons:** Primary buttons use #3B82F6 with white text and 8px rounded corners. Secondary buttons use a subtle gray outline or ghost style.
+- **Cards:** White background, 12px or 16px border-radius, and a subtle Level 1 shadow. Cards should always have a clear title in `headline-sm`.
+- **Input Fields:** 8px border-radius with a 1px border (#D1D5DB). On focus, the border shifts to #3B82F6 with a soft blue outer glow.
+- **Chips/Badges:** Used for student status (e.g., "Present", "Late"). Use high-contrast text on low-opacity backgrounds (e.g., Emerald Green text on a 10% opacity Emerald Green background).
+- **Lists:** Use alternating row highlights or subtle dividers. Each list item should have a minimum touch target of 44px.
+- **Progress Bars:** Use #10B981 for completed progress. Ensure the track color is a very light gray (#F1F5F9) for clear contrast.
+- **Additional Elements:** Calendar widgets, gradebook tables, and "Assignment Ribbons" should follow the 8px spacing and rounded corner logic consistently.

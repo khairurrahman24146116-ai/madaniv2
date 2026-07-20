@@ -25,8 +25,13 @@ $canEdit = $canEdit ?? true;
             <h2 class="text-headline-md text-on-surface">{{ $schedule->teacherSubject->subject->name ?? 'Fisika' }} - {{ $schedule->teacherSubject->classroom->name ?? 'Kelas XI' }}</h2>
             <p class="text-body-md text-on-surface-variant">{{ \Carbon\Carbon::parse($date)->locale('id')->isoFormat('dddd, D MMMM YYYY') }}</p>
         </div>
-        <div class="bg-secondary-container text-on-secondary-container px-sm py-xs rounded-lg text-label-md">
-            {{ $schedule->start_time ?? '14:00' }} - {{ $schedule->end_time ?? '16:00' }}
+        <div class="flex items-center gap-sm">
+            <div class="bg-secondary-container text-on-secondary-container px-sm py-xs rounded-lg text-label-md">
+                {{ $schedule->start_time ?? '14:00' }} - {{ $schedule->end_time ?? '16:00' }}
+            </div>
+            <div class="bg-surface-container text-on-surface-variant px-sm py-xs rounded-lg text-label-md tabular-nums" id="current-time-header">
+                {{ now()->format('H:i:s') }}
+            </div>
         </div>
     </div>
     <div class="flex flex-wrap gap-sm mt-md" id="summary-chips">
@@ -68,6 +73,9 @@ $canEdit = $canEdit ?? true;
     </div>
 </form>
 
+{{-- Ensure Tailwind v4 generates status color classes --}}
+<span class="hidden bg-amber-500 bg-blue-500 bg-red-600 text-white"></span>
+
 {{-- Student List --}}
 <form action="{{ route('attendances.store') }}" method="POST">
     @csrf
@@ -90,7 +98,7 @@ $canEdit = $canEdit ?? true;
                 <input type="hidden" name="attendances[{{ $loop->index }}][student_id]" value="{{ $student->id }}">
                 <input type="hidden" name="attendances[{{ $loop->index }}][status]" value="H" class="attendance-status">
                 @foreach(['H' => 'Hadir', 'S' => 'Sakit', 'I' => 'Izin', 'A' => 'Alpa'] as $key => $label)
-                <button type="button" onclick="setStatus(this, '{{ $key }}')" class="status-btn flex-1 sm:w-14 py-1 px-2 rounded-md text-label-md text-center text-on-surface-variant transition-all hover:bg-surface-container-high active:scale-95 @if($key === 'H') bg-green-600 text-white @endif" data-status="{{ $key }}">{{ $key }}</button>
+                <button type="button" onclick="setStatus(this, '{{ $key }}')" class="status-btn flex-1 sm:w-14 py-1 px-2 rounded-md text-label-md text-center text-on-surface-variant transition-all hover:bg-surface-container-high active:scale-95 @if($key === 'H') bg-green-600 text-white @endif" data-status="{{ $key }}" @if($key === 'H') data-selected="H" @endif>{{ $key }}</button>
                 @endforeach
             </div>
         </div>
@@ -127,30 +135,48 @@ $canEdit = $canEdit ?? true;
 
 @push('scripts')
 <script>
-    let counts = { H: {{ count($students) }}, S: 0, I: 0, A: 0 };
     function setStatus(btn, status) {
         const parent = btn.closest('.student-card');
-        const prevActive = parent.querySelector('.status-btn.text-white');
-        if (prevActive) {
-            const prevStatus = prevActive.getAttribute('data-status');
-            if (prevStatus) counts[prevStatus]--;
-            prevActive.className = 'status-btn flex-1 sm:w-14 py-1 px-2 rounded-md text-label-md text-center text-on-surface-variant transition-all hover:bg-surface-container-high active:scale-95';
-            prevActive.removeAttribute('data-selected');
+        const prevSelected = parent.querySelector('[data-selected]');
+
+        if (prevSelected && prevSelected.getAttribute('data-selected') === status) {
+            return;
         }
-        btn.className = 'status-btn flex-1 sm:w-14 py-1 px-2 rounded-md text-label-md text-center active:scale-95';
-        const colors = { H: ['bg-green-600', 'text-white'], S: ['bg-amber-500', 'text-white'], I: ['bg-blue-500', 'text-white'], A: ['bg-red-600', 'text-white'] };
-        if (colors[status]) btn.classList.add(...colors[status]);
+
+        if (prevSelected) {
+            prevSelected.removeAttribute('data-selected');
+            prevSelected.classList.remove('bg-green-600', 'bg-amber-500', 'bg-blue-500', 'bg-red-600', 'text-white');
+            prevSelected.classList.add('text-on-surface-variant');
+        }
+
+        btn.classList.remove('text-on-surface-variant');
+        btn.classList.remove('bg-green-600', 'bg-amber-500', 'bg-blue-500', 'bg-red-600', 'text-white');
+        const colors = { H: 'bg-green-600', S: 'bg-amber-500', I: 'bg-blue-500', A: 'bg-red-600' };
+        btn.classList.add(colors[status], 'text-white');
         btn.setAttribute('data-selected', status);
+
         parent.querySelector('.attendance-status').value = status;
-        counts[status]++;
+
+        updateCounts();
+    }
+
+    function updateCounts() {
+        let counts = { H: 0, S: 0, I: 0, A: 0 };
+        document.querySelectorAll('[data-selected]').forEach(function (btn) {
+            var s = btn.getAttribute('data-selected');
+            if (counts[s] !== undefined) counts[s]++;
+        });
         document.getElementById('count-present').textContent = counts.H;
         document.getElementById('count-excused').textContent = counts.S + counts.I;
         document.getElementById('count-absent').textContent = counts.A;
     }
-    document.getElementById('count-present').textContent = counts.H;
+
     function updateTime() {
+        const t = new Date().toLocaleTimeString('id-ID');
         const el = document.getElementById('current-time');
-        if (el) el.textContent = 'Timestamp: ' + new Date().toLocaleTimeString('id-ID');
+        if (el) el.textContent = 'Timestamp: ' + t;
+        const header = document.getElementById('current-time-header');
+        if (header) header.textContent = t;
     }
     setInterval(updateTime, 1000);
 </script>

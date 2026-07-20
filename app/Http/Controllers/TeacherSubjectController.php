@@ -91,6 +91,48 @@ class TeacherSubjectController extends Controller
     }
 
     /**
+     * Memperbarui mapping guru-mata pelajaran-kelas.
+     */
+    public function update(Request $request, TeacherSubject $teacherSubject): JsonResponse
+    {
+        $validated = $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'subject_id' => 'required|exists:subjects,id',
+            'classroom_id' => 'required|exists:classrooms,id',
+        ]);
+
+        $guru = User::findOrFail($validated['user_id']);
+        if ($guru->role !== 'guru') {
+            return response()->json([
+                'success' => false,
+                'message' => 'User yang dipilih bukan guru',
+            ], 422);
+        }
+
+        $exists = TeacherSubject::where([
+            'user_id' => $validated['user_id'],
+            'subject_id' => $validated['subject_id'],
+            'classroom_id' => $validated['classroom_id'],
+        ])->where('id', '!=', $teacherSubject->id)->exists();
+
+        if ($exists) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Mapping guru-mata pelajaran-kelas ini sudah ada',
+            ], 422);
+        }
+
+        $teacherSubject->update($validated);
+        $teacherSubject->load(['user', 'subject', 'classroom']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Mapping guru berhasil diperbarui',
+            'data' => $teacherSubject,
+        ]);
+    }
+
+    /**
      * Menampilkan detail mapping beserta jadwal terkait.
      */
     public function show(TeacherSubject $teacherSubject): JsonResponse

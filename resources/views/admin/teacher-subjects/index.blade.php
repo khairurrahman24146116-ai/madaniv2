@@ -31,9 +31,12 @@
                     <td class="px-lg py-md text-body-md text-on-surface-variant">{{ $m->classroom->name }}</td>
                     <td class="px-lg py-md text-center text-body-md text-on-surface-variant">{{ $m->schedules->count() }}</td>
                     <td class="px-lg py-md text-right">
+                        <a href="{{ route('admin.teacher-subjects.edit', $m) }}" class="inline-flex items-center gap-1 text-label-md text-primary hover:text-primary/80">
+                            <span class="material-symbols-outlined text-[18px]">edit</span> Edit
+                        </a>
                         <form action="{{ route('admin.teacher-subjects.destroy', $m) }}" method="POST" class="inline" onsubmit="return confirm('Hapus mapping {{ $m->user->name }} - {{ $m->subject->name }}?')">
                             @csrf @method('DELETE')
-                            <button type="submit" class="inline-flex items-center gap-1 text-label-md text-error hover:text-error/80">
+                            <button type="submit" class="inline-flex items-center gap-1 text-label-md text-error hover:text-error/80 ml-md">
                                 <span class="material-symbols-outlined text-[18px]">delete</span> Hapus
                             </button>
                         </form>

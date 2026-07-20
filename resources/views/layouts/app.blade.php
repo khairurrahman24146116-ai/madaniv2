@@ -38,11 +38,15 @@
     {{-- SideNavBar (desktop) --}}
     <aside class="hidden lg:flex h-[calc(100vh-64px)] w-64 flex-col bg-surface-container-low border-r border-outline-variant fixed left-0 top-16 z-40 overflow-y-auto">
         <nav class="flex-1 space-y-xs py-md">
+            @if(auth()->user()->isWaliMurid())
+            <x-nav-item href="{{ route('wali-murid.dashboard') }}" icon="dashboard" :active="request()->routeIs('wali-murid.*')">Dashboard</x-nav-item>
+            @else
             <x-nav-item href="{{ route('dashboard') }}" icon="dashboard" :active="request()->routeIs('dashboard')">Dashboard</x-nav-item>
             <x-nav-item href="{{ route('attendances.form') }}" icon="how_to_reg" :active="request()->routeIs('attendances.*')">Absensi</x-nav-item>
             <x-nav-item href="{{ route('schedules.index') }}" icon="calendar_month" :active="request()->routeIs('schedules.*')">Jadwal</x-nav-item>
             <x-nav-item href="{{ route('scores.create') }}" icon="grade" :active="request()->routeIs('scores.*')">Nilai</x-nav-item>
             <x-nav-item href="{{ route('scores.rapor-preview') }}" icon="assignment" :active="request()->routeIs('scores.rapor-preview')">E-Rapor</x-nav-item>
+            @endif
             @if(auth()->user()->isAdmin())
             <div class="pt-md mt-md border-t border-outline-variant">
                 <p class="text-caption text-on-surface-variant px-lg pb-xs uppercase tracking-wider">Admin</p>
@@ -51,6 +55,9 @@
                 <x-nav-item href="{{ route('admin.subjects.index') }}" icon="book" :active="request()->routeIs('admin.subjects.*')">Mapel</x-nav-item>
                 <x-nav-item href="{{ route('admin.students.index') }}" icon="people" :active="request()->routeIs('admin.students.*')">Siswa</x-nav-item>
                 <x-nav-item href="{{ route('admin.teacher-subjects.index') }}" icon="assignment_ind" :active="request()->routeIs('admin.teacher-subjects.*')">Mapping</x-nav-item>
+                <x-nav-item href="{{ route('admin.schedules.index') }}" icon="calendar_month" :active="request()->routeIs('admin.schedules.*')">Jadwal</x-nav-item>
+                <x-nav-item href="{{ route('admin.score-components.index') }}" icon="tune" :active="request()->routeIs('admin.score-components.*')">Bobot Nilai</x-nav-item>
+                <x-nav-item href="{{ route('admin.activity-logs.index') }}" icon="history" :active="request()->routeIs('admin.activity-logs.*')">Log Aktivitas</x-nav-item>
             </div>
             @endif
         </nav>
@@ -71,6 +78,18 @@
     </main>
 
     {{-- BottomNavBar (mobile) --}}
+    @if(auth()->user()->isWaliMurid())
+    <nav class="md:hidden fixed bottom-0 w-full z-50 bg-surface-container-lowest border-t border-outline-variant shadow-md flex justify-around items-center h-16 px-margin-mobile">
+        <a href="{{ route('wali-murid.dashboard') }}" class="flex flex-col items-center justify-center px-4 py-1 @if(request()->routeIs('wali-murid.dashboard')) text-primary @else text-on-surface-variant @endif">
+            <span class="material-symbols-outlined">dashboard</span>
+            <span class="text-label-md">Dashboard</span>
+        </a>
+        <a href="{{ auth()->user()->students->first() ? route('wali-murid.rapor', auth()->user()->students->first()) : '#' }}" class="flex flex-col items-center justify-center px-4 py-1 @if(request()->routeIs('wali-murid.rapor')) text-primary @else text-on-surface-variant @endif">
+            <span class="material-symbols-outlined">assignment</span>
+            <span class="text-label-md">Rapor</span>
+        </a>
+    </nav>
+    @else
     <nav class="md:hidden fixed bottom-0 w-full z-50 bg-surface-container-lowest border-t border-outline-variant shadow-md flex justify-around items-center h-16 px-margin-mobile">
         <a href="{{ route('dashboard') }}" class="flex flex-col items-center justify-center px-4 py-1 @if(request()->routeIs('dashboard')) text-primary @else text-on-surface-variant @endif">
             <span class="material-symbols-outlined">dashboard</span>
@@ -93,6 +112,7 @@
             <span class="text-label-md">Rapor</span>
         </a>
     </nav>
+    @endif
     @else
     <main class="min-h-screen flex items-center justify-center">
         @yield('content')

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -19,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 class Subject extends Model
 {
     use HasFactory;
+    use LogsActivity;
 
     /**
      * Relasi ke mapping guru-mata pelajaran untuk subjek ini.
@@ -34,5 +36,21 @@ class Subject extends Model
     public function teachers(): HasManyThrough
     {
         return $this->hasManyThrough(User::class, TeacherSubject::class, 'subject_id', 'id', 'id', 'user_id');
+    }
+
+    /**
+     * Relasi ke komponen penilaian untuk subjek ini.
+     */
+    public function scoreComponents(): HasMany
+    {
+        return $this->hasMany(ScoreComponent::class);
+    }
+
+    /**
+     * Relasi ke nilai untuk subjek ini.
+     */
+    public function scores(): HasMany
+    {
+        return $this->hasMany(Score::class);
     }
 }
