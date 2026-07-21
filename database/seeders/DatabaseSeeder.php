@@ -18,6 +18,14 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // Seeder ini berisi akun & data DEMO — dilarang jalan di production.
+        // Untuk hosting gunakan: php artisan db:seed --class=ProductionSeeder
+        if (app()->environment('production')) {
+            $this->command->error('DatabaseSeeder berisi data demo dan diblokir di production. Gunakan ProductionSeeder.');
+
+            return;
+        }
+
         // ===== User (idempotent) =====
         $admin = User::firstOrCreate(
             ['email' => 'admin@madani.id'],
