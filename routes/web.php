@@ -452,6 +452,12 @@ Route::middleware('auth:sanctum')->group(function () {
             return redirect()->route('admin.teacher-subjects.index')->with('success', 'Mapping berhasil diperbarui');
         })->name('admin.teacher-subjects.update');
 
+        Route::delete('/app/admin/teacher-subjects/{teacher_subject}', function (TeacherSubject $teacherSubject) {
+            $teacherSubject->delete();
+
+            return redirect()->route('admin.teacher-subjects.index')->with('success', 'Mapping berhasil dihapus');
+        })->name('admin.teacher-subjects.destroy');
+
         // ===== Schedules =====
         Route::get('/app/admin/schedules', function () {
             $schedules = Schedule::with('teacherSubject.user', 'teacherSubject.subject', 'teacherSubject.classroom')
