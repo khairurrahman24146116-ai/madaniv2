@@ -609,7 +609,7 @@ class ScoreController extends Controller
     public function raporPdf(Request $request): Response
     {
         $request->validate([
-            'student_id' => 'required|exists:students,id',
+            'student_id' => 'required|numeric|exists:students,id',
             'semester' => 'required|in:ganjil,genap',
             'academic_year' => 'required|string|max:9',
         ]);
@@ -664,6 +664,14 @@ class ScoreController extends Controller
 
         $overallAverage = $subjectCount > 0 ? round($totalGrade / $subjectCount, 2) : null;
 
+        $verificationCode = strtoupper(hash('sha256', implode('|', [
+            $student->id,
+            $semester,
+            $academicYear,
+            $overallAverage ?? '',
+            config('app.key'),
+        ])));
+
         $pdf = Pdf::loadView('pdf.rapor', [
             'student' => $student,
             'classroom' => $student->classroom,
@@ -680,6 +688,7 @@ class ScoreController extends Controller
                 'A' => (int) $attendanceSummary->get('A', 0),
             ],
             'generated_at' => now()->toDateTimeString(),
+            'verification_code' => substr($verificationCode, 0, 16),
         ]);
 
         $safeAcademicYear = str_replace('/', '-', $academicYear);

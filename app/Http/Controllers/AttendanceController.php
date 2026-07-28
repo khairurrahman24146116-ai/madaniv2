@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Attendance;
 use App\Models\Schedule;
 use App\Models\Student;
+use App\Services\ActivityLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -168,6 +169,12 @@ class AttendanceController extends Controller
 
             return $created;
         });
+
+        // Auto-attend guru yang mengisi absensi
+        TeacherAttendanceController::autoAttend($user->id, $schedule->id, $validated['date']);
+
+        $studentCount = count($validated['attendances']);
+        ActivityLogger::log('create', 'Mengisi absensi: '.$studentCount.' siswa (jadwal '.$schedule->id.')');
 
         if ($request->expectsJson()) {
             $results = Attendance::with(['student.user', 'schedule.teacherSubject.subject'])

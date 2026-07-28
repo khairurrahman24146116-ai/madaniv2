@@ -1,59 +1,87 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+<div align="center">
+  <img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="300" alt="Madani Al-Aziziyah">
+</div>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+# Madani Al-Aziziyah — Sistem Manajemen Sekolah (SMS)
 
-## About Laravel
+Sistem informasi akademik terpadu untuk **SMA Dayah Madani Al-Aziziyah**. Mencakup manajemen kurikulum, kelas, absensi, penilaian, rapor, dan komunikasi sekolah.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Fitur
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **Manajemen Akademik**: Kelas, siswa, guru, mata pelajaran, mapping guru-mapel
+- **Jadwal Pelajaran**: Jadwal mingguan dengan validasi waktu
+- **Absensi Siswa**: Presensi Hadir/Sakit/Izin/Alpa dengan batas waktu input
+- **Penilaian**: Komponen nilai (Tugas/PH/UTS/UAS), input batch, import Excel
+- **Rapor**: PDF rapor otomatis, preview online
+- **Absensi Guru**: Presensi harian guru
+- **Surat Menyurat**: Pengajuan & cetak surat (PDF)
+- **Kontak & Pertemuan**: Pesan orang tua ke sekolah, jadwal pertemuan
+- **Role-Based Access**: Admin, Guru, Wali Murid
+- **Activity Log**: Audit trail semua operasi CRUD
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Tech Stack
 
-## Learning Laravel
+- **Backend**: Laravel 13, PHP 8.3
+- **Database**: MySQL
+- **Frontend**: Tailwind CSS 4, Alpine.js, Blade
+- **PDF**: barryvdh/laravel-dompdf
+- **Spreadsheet**: phpoffice/phpspreadsheet
+- **Auth**: Laravel Sanctum (session + token API)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Persyaratan Sistem
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- PHP >= 8.3
+- MySQL / MariaDB
+- Composer
+- Node.js & npm
+- Ekstensi PHP: `pdo_mysql`, `mbstring`, `openssl`, `tokenizer`, `xml`, `ctype`, `fileinfo`, `gd`
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Instalasi Lokal
 
 ```bash
-composer require laravel/boost --dev
+git clone <repo-url> madani-al-aziziyah
+cd madani-al-aziziyah
 
-php artisan boost:install
+composer install
+npm install
+
+cp .env.example .env
+php artisan key:generate
+
+# Setup database MySQL, lalu edit .env (DB_DATABASE, DB_USERNAME, DB_PASSWORD)
+php artisan migrate --seed
+
+npm run build
+php artisan storage:link
+
+php artisan serve
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Akses di `http://localhost:8000`.
 
-## Contributing
+> Untuk deploy ke production, lihat [DEPLOY.md](DEPLOY.md).
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Akun Default (Development)
 
-## Code of Conduct
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | admin@madani.id | (lihat output ProductionSeeder) |
+| Guru | (dibuat via admin) | (dibuat via admin) |
+| Wali Murid | (dibuat via admin) | (dibuat via admin) |
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Testing
 
-## Security Vulnerabilities
+```bash
+php artisan test
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Dokumentasi
 
-## License
+- [DEPLOY.md](DEPLOY.md) — Panduan deploy ke shared hosting
+- [DESIGN.md](DESIGN.md) — Design system & token
+- [FLOWCHART.md](FLOWCHART.md) — Flowchart sistem
+- [prd.md](prd.md) — Product Requirements Document
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-"# absensi-sekolah" 
+## Lisensi
+
+Hak cipta © SMA Dayah Madani Al-Aziziyah.

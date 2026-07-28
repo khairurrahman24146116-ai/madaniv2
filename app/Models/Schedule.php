@@ -46,4 +46,12 @@ class Schedule extends Model
     {
         return $this->hasMany(Attendance::class);
     }
+
+    /**
+     * Relasi ke absensi guru untuk jadwal ini.
+     */
+    public function teacherAttendances(): HasMany
+    {
+        return $this->hasMany(TeacherAttendance::class);
+    }
 }

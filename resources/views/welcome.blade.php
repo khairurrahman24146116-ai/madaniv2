@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Madani-SMS - Login</title>
+    <title>Madani Al-Aziziyah - Login</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
     @vite('resources/css/app.css')
     @vite('resources/js/app.js')
@@ -22,7 +22,7 @@
             <div class="w-20 h-20 bg-white/15 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-8 border border-white/20">
                 <span class="material-symbols-outlined text-[44px] text-white">school</span>
             </div>
-            <h1 class="text-[36px] font-bold text-white leading-tight tracking-tight mb-4">Madani-SMS</h1>
+            <h1 class="text-[36px] font-bold text-white leading-tight tracking-tight mb-4">Madani Al-Aziziyah</h1>
             <p class="text-[16px] text-white/70 leading-relaxed">Sistem Informasi Manajemen SMA Sore Dayah Madani Al-Aziziyah</p>
             <div class="flex items-center justify-center gap-6 mt-10 text-white/50 text-[14px]">
                 <div class="flex items-center gap-1.5">
@@ -52,7 +52,7 @@
                 <div class="w-14 h-14 bg-[#004ac6] text-white rounded-xl flex items-center justify-center mx-auto mb-4">
                     <span class="material-symbols-outlined text-[28px]">school</span>
                 </div>
-                <h1 class="text-[22px] font-bold text-on-surface">Madani-SMS</h1>
+                <h1 class="text-[22px] font-bold text-on-surface">Madani Al-Aziziyah</h1>
                 <p class="text-[14px] text-on-surface-variant mt-1">SMA Sore Dayah Madani Al-Aziziyah</p>
             </div>
 
@@ -101,24 +101,6 @@
                         Masuk
                     </button>
                 </form>
-            </div>
-
-            {{-- Demo Credentials --}}
-            <div class="mt-6 p-4 bg-[#f2f4f6] border border-[#c3c6d7] rounded-xl">
-                <div class="flex items-center gap-2 mb-3">
-                    <span class="material-symbols-outlined text-[16px] text-[#434655]">info</span>
-                    <p class="text-[12px] font-semibold text-[#434655] uppercase tracking-wider">Demo Credentials</p>
-                </div>
-                <div class="space-y-2">
-                    <div class="flex items-center justify-between gap-2">
-                        <span class="text-[14px] text-[#434655]">Admin</span>
-                        <code class="font-mono text-[12px] bg-white px-2 py-1 rounded border border-[#c3c6d7]">admin@madani.id / admin123</code>
-                    </div>
-                    <div class="flex items-center justify-between gap-2">
-                        <span class="text-[14px] text-[#434655]">Guru</span>
-                        <code class="font-mono text-[12px] bg-white px-2 py-1 rounded border border-[#c3c6d7]">ahmad@madani.id / guru123</code>
-                    </div>
-                </div>
             </div>
 
             <p class="text-center text-[12px] text-[#434655] mt-8">

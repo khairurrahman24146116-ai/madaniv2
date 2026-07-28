@@ -119,16 +119,23 @@
         <h4 class="text-headline-lg">Finalisasi E-Rapor</h4>
         <p class="text-on-primary-container/80 mt-1">Generate dokumen PDF resmi yang ditandatangani digital.</p>
     </div>
-    <a href="{{ url('scores/rapor-pdf') }}?student_id={{ request('student_id') }}&semester={{ request('semester', 'ganjil') }}&academic_year={{ request('academic_year', '2025/2026') }}" class="bg-surface-container-lowest text-primary px-8 py-4 rounded-xl font-bold flex items-center gap-3 hover:scale-105 active:scale-95 transition-all shadow-md">
+    @if($student)
+    <a href="{{ route('rapor.pdf') }}?student_id={{ $student->id }}&semester={{ request('semester', 'ganjil') }}&academic_year={{ request('academic_year', '2025/2026') }}" class="bg-surface-container-lowest text-primary px-8 py-4 rounded-xl font-bold flex items-center gap-3 hover:scale-105 active:scale-95 transition-all shadow-md">
         <span class="material-symbols-outlined">picture_as_pdf</span>
         Ekspor PDF Resmi
     </a>
+    @else
+    <button disabled class="bg-surface-container-lowest/50 text-primary/50 px-8 py-4 rounded-xl font-bold flex items-center gap-3 cursor-not-allowed">
+        <span class="material-symbols-outlined">picture_as_pdf</span>
+        Pilih Siswa Terlebih Dahulu
+    </button>
+    @endif
 </div>
 
 <div class="mt-xl mb-20 text-center">
     <p class="text-on-surface-variant text-caption italic">
         Laporan digenerate pada: {{ now()->locale('id')->isoFormat('dddd, D MMMM YYYY') }} pukul {{ now()->format('H:i') }} WIB.<br>
-        Terautentikasi secara digital oleh Madani-SMS.
+        Terautentikasi secara digital oleh Madani Al-Aziziyah.
     </p>
 </div>
 @endsection

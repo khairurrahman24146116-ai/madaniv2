@@ -22,9 +22,9 @@
     @forelse($schedules ?? [] as $schedule)
         <x-schedule-card :schedule="$schedule" variant="mobile" />
     @empty
-        <x-card variant="elevated" padding="md" class="bg-primary text-white text-center">
-            <h4 class="text-headline-md mb-xs">Tidak ada jadwal pada hari ini</h4>
-            <p class="text-body-md opacity-80">Jadwal sesi besok akan muncul di sini.</p>
+        <x-card variant="default" padding="md" class="text-center">
+            <h4 class="text-headline-md text-on-surface mb-xs">Tidak ada jadwal pada hari ini</h4>
+            <p class="text-body-md text-on-surface-variant">Jadwal sesi besok akan muncul di sini.</p>
         </x-card>
     @endforelse
 </div>

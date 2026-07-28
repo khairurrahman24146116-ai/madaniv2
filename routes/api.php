@@ -8,6 +8,7 @@ use App\Http\Controllers\ScoreComponentController;
 use App\Http\Controllers\ScoreController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\SubjectController;
+use App\Http\Controllers\TeacherAttendanceController;
 use App\Http\Controllers\TeacherSubjectController;
 use Illuminate\Support\Facades\Route;
 
@@ -41,8 +42,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('scores/rapor', [ScoreController::class, 'rapor']);
     Route::get('scores/rapor-pdf', [ScoreController::class, 'raporPdf']);
 
-    // Write: Admin & Guru
-    Route::middleware('role:admin,guru')->group(function () {
+    // Write: Guru
+    Route::middleware('role:guru')->group(function () {
+        Route::get('teacher-attendances', [TeacherAttendanceController::class, 'index']);
+        Route::get('teacher-attendances/today', [TeacherAttendanceController::class, 'today']);
+        Route::get('teacher-attendances/history', [TeacherAttendanceController::class, 'history']);
+        Route::post('teacher-attendances', [TeacherAttendanceController::class, 'store']);
+        Route::post('teacher-attendances/check-in', [TeacherAttendanceController::class, 'checkIn']);
+        Route::post('teacher-attendances/check-out', [TeacherAttendanceController::class, 'checkOut']);
+        Route::get('teacher-attendances/{teacher_attendance}', [TeacherAttendanceController::class, 'show']);
+
         Route::get('attendances/form', [AttendanceController::class, 'form'])->name('api.attendances.form');
         Route::get('attendances/export-csv', [AttendanceController::class, 'exportCsv'])->name('attendances.export-csv');
         Route::post('attendances', [AttendanceController::class, 'store']);

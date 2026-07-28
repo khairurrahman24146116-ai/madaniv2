@@ -89,9 +89,6 @@ $canEdit = $canEdit ?? true;
     </div>
 </form>
 
-{{-- Ensure Tailwind v4 generates status color classes --}}
-<span class="hidden bg-green-600 bg-amber-500 bg-blue-500 bg-red-600 text-white"></span>
-
 {{-- Student List --}}
 <form action="{{ route('attendances.store') }}" method="POST">
     @csrf
@@ -110,14 +107,14 @@ $canEdit = $canEdit ?? true;
                     <p class="text-caption text-on-surface-variant">NIS: {{ $student->nis }}</p>
                 </div>
             </div>
-            <div class="flex w-full sm:w-auto bg-surface-container p-xs rounded-lg gap-xs">
+            <div class="flex items-center gap-md w-full sm:w-auto">
                 <input type="hidden" name="attendances[{{ $loop->index }}][student_id]" value="{{ $student->id }}">
-                @foreach(['H' => 'Hadir', 'S' => 'Sakit', 'I' => 'Izin', 'A' => 'Alpa'] as $key => $label)
-                <label class="status-choice flex-1 sm:w-14 py-2 px-2 rounded-md text-label-md text-center text-on-surface-variant transition-colors hover:bg-surface-container-high cursor-pointer @if($key === 'H') bg-green-600 text-white @endif">
-                    <input type="radio" name="attendances[{{ $loop->index }}][status]" value="{{ $key }}" class="hidden" @checked($key === 'H')>
-                    {{ $key }}
-                </label>
-                @endforeach
+                <select name="attendances[{{ $loop->index }}][status]" class="rounded-lg border-outline-variant bg-surface-bright text-on-surface py-2 px-3 text-body-md w-full sm:w-32" onchange="updateCounts()">
+                    <option value="H">Hadir</option>
+                    <option value="S">Sakit</option>
+                    <option value="I">Izin</option>
+                    <option value="A">Alpa</option>
+                </select>
             </div>
         </div>
         @empty
@@ -149,19 +146,13 @@ $canEdit = $canEdit ?? true;
 
 @push('scripts')
 <script>
-    const STATUS_COLORS = { H: 'bg-green-600', S: 'bg-amber-500', I: 'bg-blue-500', A: 'bg-red-600' };
-
-    function applyStatusStyle(label, status) {
-        Object.values(STATUS_COLORS).forEach(c => label.classList.remove(c));
-        label.classList.remove('text-white', 'text-on-surface-variant');
-        label.classList.add(STATUS_COLORS[status], 'text-white');
-    }
-
     function updateCounts() {
-        const statuses = [...document.querySelectorAll('.student-card input[type="radio"]:checked')].map(input => input.value);
-        document.getElementById('count-present').textContent = statuses.filter(status => status === 'H').length;
-        document.getElementById('count-excused').textContent = statuses.filter(status => status === 'S' || status === 'I').length;
-        document.getElementById('count-absent').textContent = statuses.filter(status => status === 'A').length;
+        const selects = document.querySelectorAll('.student-card select');
+        let counts = { H: 0, S: 0, I: 0, A: 0 };
+        selects.forEach(s => { counts[s.value]++; });
+        document.getElementById('count-present').textContent = counts.H;
+        document.getElementById('count-excused').textContent = counts.S + counts.I;
+        document.getElementById('count-absent').textContent = counts.A;
     }
 
     function updateClock() {
@@ -169,19 +160,8 @@ $canEdit = $canEdit ?? true;
         if (el) el.textContent = new Date().toLocaleTimeString('id-ID');
     }
 
-    document.querySelectorAll('.status-choice input[type="radio"]').forEach(radio => {
-        if (radio.checked) {
-            applyStatusStyle(radio.closest('.status-choice'), radio.value);
-        }
-        radio.addEventListener('change', function() {
-            const parent = this.closest('.student-card');
-            parent.querySelectorAll('.status-choice').forEach(l => {
-                l.classList.remove(...Object.values(STATUS_COLORS), 'text-white');
-                l.classList.add('text-on-surface-variant');
-            });
-            applyStatusStyle(this.closest('.status-choice'), this.value);
-            updateCounts();
-        });
+    document.querySelectorAll('.student-card select').forEach(s => {
+        s.addEventListener('change', updateCounts);
     });
 
     setInterval(updateClock, 1000);

@@ -17,4 +17,27 @@ document.addEventListener('DOMContentLoaded', () => {
             updateThemeIcon();
         });
     }
+
+    // User menu dropdown (avatar di TopAppBar)
+    const userMenuToggle = document.getElementById('user-menu-toggle');
+    const userMenu = document.getElementById('user-menu');
+    if (userMenuToggle && userMenu) {
+        userMenuToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = !userMenu.classList.toggle('hidden');
+            userMenuToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        });
+        document.addEventListener('click', (e) => {
+            if (!userMenu.classList.contains('hidden') && !userMenu.contains(e.target)) {
+                userMenu.classList.add('hidden');
+                userMenuToggle.setAttribute('aria-expanded', 'false');
+            }
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !userMenu.classList.contains('hidden')) {
+                userMenu.classList.add('hidden');
+                userMenuToggle.setAttribute('aria-expanded', 'false');
+            }
+        });
+    }
 });

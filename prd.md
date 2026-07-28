@@ -1,5 +1,5 @@
 # Product Requirement Document (PRD)
-**Nama Proyek:** Sistem Informasi Manajemen SMA (Sore) Dayah Madani Al-Aziziyah (Madani-SMS)  
+**Nama Proyek:** Sistem Informasi Manajemen SMA (Sore) Dayah Madani Al-Aziziyah (Madani Al-Aziziyah)  
 **Status Dokumen:** Approved / Baselined v1.0  
 **Target Rilis:** Q3 2026  
 **Penulis:** Tim Pengembang Sistem  
@@ -11,7 +11,7 @@ Dayah Madani Al-Aziziyah menerapkan dual-system dalam pendidikannya: pendidikan 
 * **Waktu Terbatas:** Kelas hanya berlangsung selama 2 jam per hari, yaitu dari pukul 14.00 hingga 16.00 WIB (Sore).
 * **Sistem Sekolah Biasa:** Kurikulum mengadopsi struktur nasional untuk Kelas 1, 2, dan 3 SMA (Kelas X, XI, XII) dengan pembagian guru mata pelajaran yang spesifik di bidangnya masing-masing.
 
-Dengan waktu operasional yang sangat singkat (2 jam), efisiensi administrasi menjadi faktor krusial. Sistem manual saat ini memakan waktu belajar santri dan menyulitkan rekapitulasi kehadiran serta nilai multisubjek. Oleh karena itu, diperlukan sistem **Madani-SMS** untuk mendigitalisasi proses absensi per jam pelajaran secara instan dan mengintegrasikan penilaian berbasis bidang studi.
+Dengan waktu operasional yang sangat singkat (2 jam), efisiensi administrasi menjadi faktor krusial. Sistem manual saat ini memakan waktu belajar santri dan menyulitkan rekapitulasi kehadiran serta nilai multisubjek. Oleh karena itu, diperlukan sistem **Madani Al-Aziziyah** untuk mendigitalisasi proses absensi per jam pelajaran secara instan dan mengintegrasikan penilaian berbasis bidang studi.
 
 ---
 

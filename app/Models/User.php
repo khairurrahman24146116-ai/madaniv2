@@ -19,7 +19,7 @@ use Laravel\Sanctum\HasApiTokens;
  *
  * Role-Based Access Control (RBAC) sederhana menggunakan kolom 'role'.
  */
-#[Fillable(['name', 'email', 'password', 'role', 'phone', 'address', 'is_active'])]
+#[Fillable(['name', 'email', 'password', 'role', 'phone', 'address', 'is_active', 'profile_photo_path'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -32,6 +32,13 @@ class User extends Authenticatable
             'password' => 'hashed',
             'is_active' => 'boolean',
         ];
+    }
+
+    public function getProfilePhotoUrlAttribute(): string
+    {
+        return $this->profile_photo_path
+            ? asset('storage/'.$this->profile_photo_path)
+            : '';
     }
 
     /**
@@ -59,6 +66,14 @@ class User extends Authenticatable
     public function taughtClassrooms(): HasManyThrough
     {
         return $this->hasManyThrough(Classroom::class, TeacherSubject::class, 'user_id', 'id', 'id', 'classroom_id');
+    }
+
+    /**
+     * Relasi ke absensi guru.
+     */
+    public function teacherAttendances(): HasMany
+    {
+        return $this->hasMany(TeacherAttendance::class, 'user_id');
     }
 
     /**

@@ -34,7 +34,7 @@ class AuthController extends Controller
             ], 403);
         }
 
-        $token = $user->createToken('madani-sms', [$user->role])->plainTextToken;
+        $token = $user->createToken('madani-al-aziziyah', [$user->role])->plainTextToken;
 
         ActivityLogger::log('login', 'Login API: '.$user->name);
 
@@ -65,7 +65,11 @@ class AuthController extends Controller
 
             ActivityLogger::log('login', 'Login web: '.$user->name);
 
-            $redirectRoute = $user->isWaliMurid() ? 'wali-murid.dashboard' : 'dashboard';
+            $redirectRoute = match (true) {
+                $user->isWaliMurid() => 'wali-murid.dashboard',
+                $user->isAdmin() => 'admin.dashboard',
+                default => 'dashboard',
+            };
 
             return redirect()->intended(route($redirectRoute));
         }

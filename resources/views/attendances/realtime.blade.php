@@ -73,9 +73,6 @@ $canEdit = $canEdit ?? true;
     </div>
 </form>
 
-{{-- Ensure Tailwind v4 generates status color classes --}}
-<span class="hidden bg-amber-500 bg-blue-500 bg-red-600 text-white"></span>
-
 {{-- Student List --}}
 <form action="{{ route('attendances.store') }}" method="POST">
     @csrf
@@ -94,12 +91,14 @@ $canEdit = $canEdit ?? true;
                     <p class="text-caption text-on-surface-variant">NIS: {{ $student->nis }}</p>
                 </div>
             </div>
-            <div class="flex w-full sm:w-auto bg-surface-container p-xs rounded-lg gap-xs">
+            <div class="flex items-center gap-md w-full sm:w-auto">
                 <input type="hidden" name="attendances[{{ $loop->index }}][student_id]" value="{{ $student->id }}">
-                <input type="hidden" name="attendances[{{ $loop->index }}][status]" value="H" class="attendance-status">
-                @foreach(['H' => 'Hadir', 'S' => 'Sakit', 'I' => 'Izin', 'A' => 'Alpa'] as $key => $label)
-                <button type="button" onclick="setStatus(this, '{{ $key }}')" class="status-btn flex-1 sm:w-14 py-1 px-2 rounded-md text-label-md text-center text-on-surface-variant transition-all hover:bg-surface-container-high active:scale-95 @if($key === 'H') bg-green-600 text-white @endif" data-status="{{ $key }}" @if($key === 'H') data-selected="H" @endif>{{ $key }}</button>
-                @endforeach
+                <select name="attendances[{{ $loop->index }}][status]" class="rounded-lg border-outline-variant bg-surface-bright text-on-surface py-2 px-3 text-body-md w-full sm:w-32" onchange="updateCounts()">
+                    <option value="H">Hadir</option>
+                    <option value="S">Sakit</option>
+                    <option value="I">Izin</option>
+                    <option value="A">Alpa</option>
+                </select>
             </div>
         </div>
         @empty
@@ -120,11 +119,7 @@ $canEdit = $canEdit ?? true;
         </div>
     </div>
     @endif
-    <div class="fixed bottom-16 left-0 right-0 bg-surface border-t border-outline-variant p-md z-40 max-w-7xl mx-auto shadow-lg md:rounded-t-2xl flex flex-col md:flex-row items-center justify-between gap-md">
-        <div class="text-center md:text-left">
-            <p class="text-caption text-on-surface-variant">Konfirmasi Absensi</p>
-            <p class="text-label-md text-on-surface font-semibold" id="current-time">Timestamp: {{ now()->format('H:i:s') }}</p>
-        </div>
+    <div class="mt-lg">
         <x-button type="submit" variant="primary" size="xl" icon="send" icon-position="right" class="w-full md:w-auto px-xl py-md" :disabled="!$canEdit">
             Submit Absensi
         </x-button>
@@ -135,37 +130,10 @@ $canEdit = $canEdit ?? true;
 
 @push('scripts')
 <script>
-    function setStatus(btn, status) {
-        const parent = btn.closest('.student-card');
-        const prevSelected = parent.querySelector('[data-selected]');
-
-        if (prevSelected && prevSelected.getAttribute('data-selected') === status) {
-            return;
-        }
-
-        if (prevSelected) {
-            prevSelected.removeAttribute('data-selected');
-            prevSelected.classList.remove('bg-green-600', 'bg-amber-500', 'bg-blue-500', 'bg-red-600', 'text-white');
-            prevSelected.classList.add('text-on-surface-variant');
-        }
-
-        btn.classList.remove('text-on-surface-variant');
-        btn.classList.remove('bg-green-600', 'bg-amber-500', 'bg-blue-500', 'bg-red-600', 'text-white');
-        const colors = { H: 'bg-green-600', S: 'bg-amber-500', I: 'bg-blue-500', A: 'bg-red-600' };
-        btn.classList.add(colors[status], 'text-white');
-        btn.setAttribute('data-selected', status);
-
-        parent.querySelector('.attendance-status').value = status;
-
-        updateCounts();
-    }
-
     function updateCounts() {
+        const selects = document.querySelectorAll('.student-card select');
         let counts = { H: 0, S: 0, I: 0, A: 0 };
-        document.querySelectorAll('[data-selected]').forEach(function (btn) {
-            var s = btn.getAttribute('data-selected');
-            if (counts[s] !== undefined) counts[s]++;
-        });
+        selects.forEach(s => { counts[s.value]++; });
         document.getElementById('count-present').textContent = counts.H;
         document.getElementById('count-excused').textContent = counts.S + counts.I;
         document.getElementById('count-absent').textContent = counts.A;
@@ -173,11 +141,15 @@ $canEdit = $canEdit ?? true;
 
     function updateTime() {
         const t = new Date().toLocaleTimeString('id-ID');
-        const el = document.getElementById('current-time');
-        if (el) el.textContent = 'Timestamp: ' + t;
         const header = document.getElementById('current-time-header');
         if (header) header.textContent = t;
     }
+
+    document.querySelectorAll('.student-card select').forEach(s => {
+        s.addEventListener('change', updateCounts);
+    });
+
+    updateCounts();
     setInterval(updateTime, 1000);
 </script>
 @endpush

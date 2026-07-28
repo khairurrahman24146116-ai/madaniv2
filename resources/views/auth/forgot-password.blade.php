@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Madani-SMS - Lupa Password</title>
+    <title>Madani Al-Aziziyah - Lupa Password</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
     @vite('resources/css/app.css')
     @vite('resources/js/app.js')
@@ -20,7 +20,7 @@
             <div class="w-20 h-20 bg-white/15 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-8 border border-white/20">
                 <span class="material-symbols-outlined text-[44px] text-white">school</span>
             </div>
-            <h1 class="text-[36px] font-bold text-white leading-tight tracking-tight mb-4">Madani-SMS</h1>
+            <h1 class="text-[36px] font-bold text-white leading-tight tracking-tight mb-4">Madani Al-Aziziyah</h1>
             <p class="text-[16px] text-white/70 leading-relaxed">Sistem Informasi Manajemen SMA Sore Dayah Madani Al-Aziziyah</p>
         </div>
     </div>
@@ -30,7 +30,7 @@
                 <div class="w-14 h-14 bg-[#004ac6] text-white rounded-xl flex items-center justify-center mx-auto mb-4">
                     <span class="material-symbols-outlined text-[28px]">school</span>
                 </div>
-                <h1 class="text-[22px] font-bold text-on-surface">Madani-SMS</h1>
+                <h1 class="text-[22px] font-bold text-on-surface">Madani Al-Aziziyah</h1>
             </div>
             <div class="mb-8">
                 <h2 class="text-[24px] font-semibold text-on-surface tracking-tight">Lupa Password</h2>

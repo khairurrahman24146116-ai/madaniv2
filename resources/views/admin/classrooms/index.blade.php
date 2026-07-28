@@ -18,6 +18,7 @@
                 <tr class="bg-surface-container-high border-b border-outline-variant">
                     <th class="px-lg py-md text-label-md text-on-surface-variant uppercase">Kelas</th>
                     <th class="px-lg py-md text-label-md text-on-surface-variant uppercase">Tingkat</th>
+                    <th class="px-lg py-md text-label-md text-on-surface-variant uppercase">Wali Kelas</th>
                     <th class="px-lg py-md text-label-md text-on-surface-variant uppercase">Tahun Ajaran</th>
                     <th class="px-lg py-md text-label-md text-on-surface-variant uppercase text-center">Siswa</th>
                     <th class="px-lg py-md text-label-md text-on-surface-variant uppercase text-right">Aksi</th>
@@ -28,6 +29,7 @@
                 <tr class="hover:bg-surface-container-low transition-colors">
                     <td class="px-lg py-md text-body-md text-on-surface font-semibold">{{ $c->name }}</td>
                     <td class="px-lg py-md text-body-md text-on-surface-variant">{{ $c->grade }}</td>
+                    <td class="px-lg py-md text-body-md text-on-surface">{{ $c->waliKelas?->name ?? '-' }}</td>
                     <td class="px-lg py-md text-body-md text-on-surface-variant">{{ $c->academic_year }}</td>
                     <td class="px-lg py-md text-center text-body-md text-on-surface-variant">{{ $c->students_count }}</td>
                     <td class="px-lg py-md text-right">
@@ -44,7 +46,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="5" class="text-center py-xl text-on-surface-variant">Belum ada kelas.</td>
+                    <td colspan="6" class="text-center py-xl text-on-surface-variant">Belum ada kelas.</td>
                 </tr>
                 @endforelse
             </tbody>

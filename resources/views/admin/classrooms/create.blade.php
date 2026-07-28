@@ -34,6 +34,17 @@
                 @error('academic_year')<p class="text-error text-caption mt-1">{{ $message }}</p>@enderror
             </div>
             <div>
+                <label class="block text-label-md text-on-surface-variant mb-xs">WALI KELAS</label>
+                <select name="wali_kelas_id"
+                    class="w-full rounded-lg border border-outline-variant bg-surface-bright text-on-surface px-4 py-3 text-body-md outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors">
+                    <option value="">Pilih wali kelas</option>
+                    @foreach($gurus ?? [] as $g)
+                    <option value="{{ $g->id }}" @selected(old('wali_kelas_id')==$g->id)>{{ $g->name }}</option>
+                    @endforeach
+                </select>
+                @error('wali_kelas_id')<p class="text-error text-caption mt-1">{{ $message }}</p>@enderror
+            </div>
+            <div>
                 <label class="block text-label-md text-on-surface-variant mb-xs">DESKRIPSI</label>
                 <textarea name="description" rows="3"
                     class="w-full rounded-lg border border-outline-variant bg-surface-bright text-on-surface px-4 py-3 text-body-md outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors">{{ old('description') }}</textarea>

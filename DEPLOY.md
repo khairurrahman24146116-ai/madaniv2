@@ -1,6 +1,6 @@
 # Panduan Deploy ke Shared Hosting (cPanel)
 
-Panduan singkat men-deploy **Madani-SMS** ke shared hosting (cPanel/DirectAdmin dengan PHP 8.2+ dan MySQL).
+Panduan singkat men-deploy **Madani Al-Aziziyah** ke shared hosting (cPanel/DirectAdmin dengan PHP 8.2+ dan MySQL).
 
 ## 1. Persyaratan hosting
 
@@ -11,14 +11,14 @@ Panduan singkat men-deploy **Madani-SMS** ke shared hosting (cPanel/DirectAdmin 
 ## 2. Upload file
 
 1. Jalankan di lokal dulu (sudah dilakukan): `npm run build` — folder `public/build` wajib ikut di-upload.
-2. Zip seluruh project **kecuali** `node_modules` dan `.git`, upload & extract di hosting, idealnya di luar `public_html` (mis. `~/madani-sms`).
+2. Zip seluruh project **kecuali** `node_modules` dan `.git`, upload & extract di hosting, idealnya di luar `public_html` (mis. `~/madani-al-aziziyah`).
 3. Folder `vendor` ikut di-upload (shared hosting sering tidak punya composer). Jika ada SSH + composer, lebih baik jalankan `composer install --no-dev --optimize-autoloader` di server.
 
 ## 3. Arahkan document root
 
-- **Jika bisa ubah document root:** arahkan ke `~/madani-sms/public`.
+- **Jika bisa ubah document root:** arahkan ke `~/madani-al-aziziyah/public`.
 - **Jika tidak bisa (addon/subdomain biasanya bisa; domain utama kadang tidak):**
-  salin isi folder `public/` ke `public_html/`, lalu edit `public_html/index.php` — ubah dua path `__DIR__.'/../vendor/...'` dan `__DIR__.'/../bootstrap/...'` menjadi path ke folder project (mis. `__DIR__.'/../madani-sms/vendor/...'`).
+  salin isi folder `public/` ke `public_html/`, lalu edit `public_html/index.php` — ubah dua path `__DIR__.'/../vendor/...'` dan `__DIR__.'/../bootstrap/...'` menjadi path ke folder project (mis. `__DIR__.'/../madani-al-aziziyah/vendor/...'`).
 
 ## 4. Buat database & .env
 
@@ -26,8 +26,7 @@ Panduan singkat men-deploy **Madani-SMS** ke shared hosting (cPanel/DirectAdmin 
 2. Buat file `.env` di folder project di server, salin dari template di bawah, isi bagian yang bertanda `<...>`:
 
 ```env
-APP_NAME="Madani-SMS"
-APP_ENV=production
+APP_NAME="Madani Al-Aziziyah"
 APP_KEY=            # diisi lewat: php artisan key:generate
 APP_DEBUG=false
 APP_URL=https://<domain-anda>
@@ -70,7 +69,7 @@ VITE_APP_NAME="${APP_NAME}"
 ## 5. Inisialisasi aplikasi (via SSH atau Terminal cPanel)
 
 ```bash
-cd ~/madani-sms
+cd ~/madani-al-aziziyah
 php artisan key:generate
 php artisan migrate --force
 php artisan db:seed --class=ProductionSeeder   # buat akun admin (password acak, dicatat dari output)

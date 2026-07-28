@@ -6,6 +6,7 @@ use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
  * Fase 1 (FR-1.2): Kelas dibagi dalam 3 tingkatan: X, XI, XII.
  * Setiap kelas memiliki daftar siswa dan mapping guru-mata pelajaran.
  */
-#[Fillable(['name', 'grade', 'academic_year', 'description'])]
+#[Fillable(['name', 'grade', 'academic_year', 'description', 'wali_kelas_id'])]
 class Classroom extends Model
 {
     use HasFactory;
@@ -48,6 +49,14 @@ class Classroom extends Model
     public function teachers(): HasManyThrough
     {
         return $this->hasManyThrough(User::class, TeacherSubject::class, 'classroom_id', 'id', 'id', 'user_id');
+    }
+
+    /**
+     * Relasi ke wali kelas (User dengan role guru).
+     */
+    public function waliKelas(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'wali_kelas_id');
     }
 
     /**
