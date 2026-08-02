@@ -42,7 +42,7 @@ class AuthController extends Controller
             'success' => true,
             'message' => 'Login berhasil',
             'data' => [
-                'user' => $user->only(['id', 'name', 'email', 'role']),
+                'user' => $user->only(['id', 'name', 'email', 'role', 'must_change_password']),
                 'token' => $token,
             ],
         ]);

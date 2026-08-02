@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * Controller Student — CRUD & import data siswa.
@@ -64,7 +65,7 @@ class StudentController extends Controller
      * Menambah siswa baru beserta akun user.
      * Transaksional: jika user berhasil dibuat, baru siswa dibuat.
      * Email default: siswa{NIS}@madani.id jika tidak diisi.
-     * Password default: siswa123
+     * Password: random (Str::random(10)), user wajib ganti password saat login pertama.
      */
     public function store(Request $request): JsonResponse
     {
@@ -85,8 +86,9 @@ class StudentController extends Controller
             $user = User::create([
                 'name' => $validated['name'],
                 'email' => $validated['email'] ?? "siswa{$validated['nis']}@madani.id",
-                'password' => bcrypt('siswa123'),
+                'password' => Str::random(10),
                 'role' => 'wali_murid',
+                'must_change_password' => true,
             ]);
 
             return Student::create([
@@ -207,8 +209,9 @@ class StudentController extends Controller
             $user = User::create([
                 'name' => $data['name'],
                 'email' => "siswa{$data['nis']}@madani.id",
-                'password' => bcrypt('siswa123'),
+                'password' => Str::random(10),
                 'role' => 'wali_murid',
+                'must_change_password' => true,
             ]);
 
             Student::create([

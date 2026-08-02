@@ -58,6 +58,12 @@ Route::get('/', function () {
 Route::post('/auth/login/web', [AuthController::class, 'loginWeb'])->name('auth.login.web');
 Route::post('/auth/logout/web', [AuthController::class, 'logoutWeb'])->name('auth.logout.web');
 
+// ===== Ganti Password Wajib (must_change_password) =====
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/app/ganti-password', [PasswordChangeController::class, 'showForm'])->name('password.change');
+    Route::post('/app/ganti-password', [PasswordChangeController::class, 'update'])->name('password.change.update');
+});
+
 Route::get('/login', function () {
     if (auth()->check()) {
         $redirect = auth()->user()->isWaliMurid() ? 'wali-murid.dashboard' : (auth()->user()->isAdmin() ? 'admin.dashboard' : 'dashboard');
@@ -77,21 +83,15 @@ Route::middleware('guest')->group(function () {
 });
 
 // ===== Halaman View (dengan middleware auth) =====
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'password.changed'])->group(function () {
 
     // ===== Profile (semua user) =====
     Route::get('/app/profile', function () {
         return view('profile.edit');
     })->name('profile.edit');
 
-    Route::post('/app/profile', function (Request $req) {
-        $data = $req->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email,'.auth()->id(),
-            'phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string',
-            'profile_photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-        ]);
+    Route::post('/app/profile', function (UpdateProfileRequest $req) {
+        $data = $req->validated();
 
         $user = auth()->user();
         $user->name = $data['name'];
@@ -523,19 +523,15 @@ Route::middleware('auth:sanctum')->group(function () {
             return view('admin.students.create', compact('classrooms'));
         })->name('admin.students.create');
 
-        Route::post('/app/admin/students', function (Request $req) {
-            $data = $req->validate([
-                'classroom_id' => 'required|exists:classrooms,id',
-                'nis' => 'required|unique:students,nis',
-                'name' => 'required',
-                'gender' => 'required|in:L,P',
-                'birth_date' => 'nullable|date',
-                'address' => 'nullable',
-                'phone' => 'nullable',
-                'parent_name' => 'nullable',
-                'parent_phone' => 'nullable',
+        Route::post('/app/admin/students', function (StoreStudentRequest $req) {
+            $data = $req->validated();
+            $user = User::create([
+                'name' => $data['name'],
+                'email' => 'siswa'.$data['nis'].'@madani.id',
+                'password' => Str::random(10),
+                'role' => 'wali_murid',
+                'must_change_password' => true,
             ]);
-            $user = User::create(['name' => $data['name'], 'email' => 'siswa'.$data['nis'].'@madani.id', 'password' => bcrypt('siswa123'), 'role' => 'wali_murid']);
             $data['user_id'] = $user->id;
             Student::create($data);
             ActivityLogger::log('create', 'Menambahkan siswa: '.$data['name'].' (NIS: '.$data['nis'].')');
@@ -935,13 +931,14 @@ Route::middleware('auth:sanctum')->group(function () {
             return view('admin.users.index', compact('users', 'totalUsers', 'totalGuru', 'totalWaliMurid', 'totalAdmin'));
         })->name('admin.users.index');
 
-        Route::post('/app/admin/users/{user}/reset-password', function (Request $req, User $user) {
-            $data = $req->validate([
-                'password' => 'required|min:6|confirmed',
-            ]);
+        Route::post('/app/admin/users/{user}/reset-password', function (ResetUserPasswordRequest $req, User $user) {
+            $data = $req->validated();
 
             $plainPassword = $data['password'];
-            $user->update(['password' => bcrypt($plainPassword)]);
+            $user->update([
+                'password' => bcrypt($plainPassword),
+                'must_change_password' => true,
+            ]);
 
             ActivityLogger::log('update', 'Reset password: '.$user->name.' ('.$user->email.')');
 

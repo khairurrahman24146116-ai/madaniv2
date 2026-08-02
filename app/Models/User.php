@@ -19,7 +19,7 @@ use Laravel\Sanctum\HasApiTokens;
  *
  * Role-Based Access Control (RBAC) sederhana menggunakan kolom 'role'.
  */
-#[Fillable(['name', 'email', 'password', 'role', 'phone', 'address', 'is_active', 'profile_photo_path'])]
+#[Fillable(['name', 'email', 'password', 'role', 'phone', 'address', 'is_active', 'profile_photo_path', 'must_change_password'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -31,6 +31,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'must_change_password' => 'boolean',
         ];
     }
 

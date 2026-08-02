@@ -13,6 +13,7 @@ use App\Models\TeacherSubject;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
@@ -29,17 +30,17 @@ class DatabaseSeeder extends Seeder
         // ===== User (idempotent) =====
         $admin = User::firstOrCreate(
             ['email' => 'admin@madani.id'],
-            ['name' => 'Admin SMA', 'password' => Hash::make('admin123'), 'role' => 'admin', 'is_active' => true]
+            ['name' => 'Admin SMA', 'password' => Hash::make('admin123'), 'role' => 'admin', 'is_active' => true, 'must_change_password' => false]
         );
 
         $guru1 = User::firstOrCreate(
             ['email' => 'ahmad@madani.id'],
-            ['name' => 'Ustaz Ahmad', 'password' => Hash::make('guru123'), 'role' => 'guru', 'is_active' => true]
+            ['name' => 'Ustaz Ahmad', 'password' => Hash::make('guru123'), 'role' => 'guru', 'is_active' => true, 'must_change_password' => false]
         );
 
         $guru2 = User::firstOrCreate(
             ['email' => 'fatimah@madani.id'],
-            ['name' => 'Ustazah Fatimah', 'password' => Hash::make('guru123'), 'role' => 'guru', 'is_active' => true]
+            ['name' => 'Ustazah Fatimah', 'password' => Hash::make('guru123'), 'role' => 'guru', 'is_active' => true, 'must_change_password' => false]
         );
 
         // ===== Kelas =====
@@ -95,11 +96,14 @@ class DatabaseSeeder extends Seeder
         ];
 
         $students = [];
+        $studentPasswords = [];
         foreach ($siswaData as $i => $data) {
+            $password = Str::random(10);
             $user = User::firstOrCreate(
                 ['email' => "siswa{$data['nis']}@madani.id"],
-                ['name' => $data['name'], 'password' => Hash::make('siswa123'), 'role' => 'wali_murid']
+                ['name' => $data['name'], 'password' => Hash::make($password), 'role' => 'wali_murid', 'must_change_password' => true]
             );
+            $studentPasswords[] = "{$data['name']} (NIS {$data['nis']}): {$password}";
             $students[] = Student::firstOrCreate(
                 ['nis' => $data['nis']],
                 ['user_id' => $user->id, 'classroom_id' => $data['classroom_id'], 'name' => $data['name'], 'gender' => $i < 3 ? 'L' : ($i < 6 ? 'P' : 'L'), 'is_active' => true]
@@ -143,5 +147,12 @@ class DatabaseSeeder extends Seeder
         }
 
         $this->command->info('Seeder berhasil: '.User::count().' user, '.Classroom::count().' kelas, '.Subject::count().' mapel, '.Student::count().' siswa');
+
+        if (! empty($studentPasswords)) {
+            $this->command->info('Password awal siswa (acak, wajib diganti saat login pertama):');
+            foreach ($studentPasswords as $line) {
+                $this->command->line($line);
+            }
+        }
     }
 }
