@@ -66,6 +66,8 @@
         <nav class="flex-1 space-y-xs py-md">
             @if(auth()->user()->isWaliMurid())
             <x-nav-item href="{{ route('wali-murid.dashboard') }}" icon="dashboard" :active="request()->routeIs('wali-murid.dashboard')">Dashboard</x-nav-item>
+            <x-nav-item href="{{ route('active-letters.index') }}" icon="badge" :active="request()->routeIs('active-letters.*')">Surat Aktif</x-nav-item>
+            <x-nav-item href="{{ route('spp.index') }}" icon="payments" :active="request()->routeIs('spp.*')">SPP</x-nav-item>
             <x-nav-item href="{{ route('wali.letters.index') }}" icon="description" :active="request()->routeIs('wali.letters.*')">Surat</x-nav-item>
             <x-nav-item href="{{ route('wali.contact.index') }}" icon="mail" :active="request()->routeIs('wali.contact.*')">Hubungi Kepsek</x-nav-item>
             <x-nav-item href="{{ route('wali.meetings.index') }}" icon="event" :active="request()->routeIs('wali.meetings.*')">Jadwal Pertemuan</x-nav-item>
@@ -77,6 +79,7 @@
             <x-nav-item href="{{ route('schedules.index') }}" icon="calendar_month" :active="request()->routeIs('schedules.*')">Jadwal</x-nav-item>
             <x-nav-item href="{{ route('scores.create') }}" icon="grade" :active="request()->routeIs('scores.*')">Nilai</x-nav-item>
             <x-nav-item href="{{ route('scores.rapor-preview') }}" icon="assignment" :active="request()->routeIs('scores.rapor-preview')">E-Rapor</x-nav-item>
+            <x-nav-item href="{{ route('spp.index') }}" icon="payments" :active="request()->routeIs('spp.*')">SPP</x-nav-item>
             <x-nav-item href="{{ route('guru.letters.index') }}" icon="description" :active="request()->routeIs('guru.letters.*')">Surat</x-nav-item>
             @endif
             @if(auth()->user()->isAdmin())
@@ -91,6 +94,7 @@
                 <x-nav-item href="{{ route('admin.teacher-attendances.index') }}" icon="badge" :active="request()->routeIs('admin.teacher-attendances.*')">Absensi Guru</x-nav-item>
                 <x-nav-item href="{{ route('admin.users.index') }}" icon="manage_accounts" :active="request()->routeIs('admin.users.*')">Pengguna</x-nav-item>
                 <x-nav-item href="{{ route('admin.score-components.index') }}" icon="tune" :active="request()->routeIs('admin.score-components.*')">Bobot Nilai</x-nav-item>
+                <x-nav-item href="{{ route('spp.index') }}" icon="payments" :active="request()->routeIs('spp.*')">SPP</x-nav-item>
                 <x-nav-item href="{{ route('admin.letters.index') }}" icon="description" :active="request()->routeIs('admin.letters.*')">Surat</x-nav-item>
                 <x-nav-item href="{{ route('admin.contact.index') }}" icon="mail" :active="request()->routeIs('admin.contact.*')">Pesan Masuk</x-nav-item>
                 <x-nav-item href="{{ route('admin.meetings.index') }}" icon="event" :active="request()->routeIs('admin.meetings.*')">Pertemuan</x-nav-item>
@@ -127,6 +131,8 @@
             <nav class="py-md space-y-xs">
                 @if(auth()->user()->isWaliMurid())
                     <x-nav-item href="{{ route('wali-murid.dashboard') }}" icon="dashboard" :active="request()->routeIs('wali-murid.dashboard')">Dashboard</x-nav-item>
+                    <x-nav-item href="{{ route('active-letters.index') }}" icon="badge" :active="request()->routeIs('active-letters.*')">Surat Aktif</x-nav-item>
+                    <x-nav-item href="{{ route('spp.index') }}" icon="payments" :active="request()->routeIs('spp.*')">SPP</x-nav-item>
                     <x-nav-item href="{{ route('wali.letters.index') }}" icon="description" :active="request()->routeIs('wali.letters.*')">Surat</x-nav-item>
                     <x-nav-item href="{{ route('wali.contact.index') }}" icon="mail" :active="request()->routeIs('wali.contact.*')">Hubungi Kepsek</x-nav-item>
                     <x-nav-item href="{{ route('wali.meetings.index') }}" icon="event" :active="request()->routeIs('wali.meetings.*')">Jadwal Pertemuan</x-nav-item>
@@ -139,6 +145,8 @@
                     <x-nav-item href="{{ route('schedules.index') }}" icon="calendar_month" :active="request()->routeIs('schedules.*')">Jadwal</x-nav-item>
                     <x-nav-item href="{{ route('scores.create') }}" icon="grade" :active="request()->routeIs('scores.*')">Nilai</x-nav-item>
                     <x-nav-item href="{{ route('scores.rapor-preview') }}" icon="assignment" :active="request()->routeIs('scores.rapor-preview')">E-Rapor</x-nav-item>
+                    <x-nav-item href="{{ route('active-letters.index') }}" icon="badge" :active="request()->routeIs('active-letters.*')">Surat Aktif</x-nav-item>
+                    <x-nav-item href="{{ route('spp.index') }}" icon="payments" :active="request()->routeIs('spp.*')">SPP</x-nav-item>
                     <x-nav-item href="{{ route('guru.letters.index') }}" icon="description" :active="request()->routeIs('guru.letters.*')">Surat</x-nav-item>
                 @endif
                 @if(auth()->user()->isAdmin())
@@ -153,6 +161,8 @@
                         <x-nav-item href="{{ route('admin.teacher-attendances.index') }}" icon="badge" :active="request()->routeIs('admin.teacher-attendances.*')">Absensi Guru</x-nav-item>
                         <x-nav-item href="{{ route('admin.users.index') }}" icon="manage_accounts" :active="request()->routeIs('admin.users.*')">Pengguna</x-nav-item>
                         <x-nav-item href="{{ route('admin.score-components.index') }}" icon="tune" :active="request()->routeIs('admin.score-components.*')">Bobot Nilai</x-nav-item>
+                        <x-nav-item href="{{ route('active-letters.index') }}" icon="badge" :active="request()->routeIs('active-letters.*')">Surat Aktif</x-nav-item>
+                        <x-nav-item href="{{ route('spp.index') }}" icon="payments" :active="request()->routeIs('spp.*')">SPP</x-nav-item>
                         <x-nav-item href="{{ route('admin.letters.index') }}" icon="description" :active="request()->routeIs('admin.letters.*')">Surat</x-nav-item>
                         <x-nav-item href="{{ route('admin.contact.index') }}" icon="mail" :active="request()->routeIs('admin.contact.*')">Pesan Masuk</x-nav-item>
                         <x-nav-item href="{{ route('admin.meetings.index') }}" icon="event" :active="request()->routeIs('admin.meetings.*')">Pertemuan</x-nav-item>

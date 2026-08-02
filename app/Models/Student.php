@@ -62,4 +62,18 @@ class Student extends Model
     {
         return $this->hasMany(Score::class);
     }
+
+    public function studentFees(): HasMany
+    {
+        return $this->hasMany(StudentFee::class);
+    }
+
+    public function isFeePaid(int $month, int $year): bool
+    {
+        return $this->studentFees()
+            ->where('month', $month)
+            ->where('year', $year)
+            ->where('is_paid', true)
+            ->exists();
+    }
 }

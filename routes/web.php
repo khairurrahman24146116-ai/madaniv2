@@ -1,13 +1,32 @@
 <?php
 
+use App\Http\Controllers\ActiveLetterController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\LetterController;
 use App\Http\Controllers\MeetingController;
+use App\Http\Controllers\PasswordChangeController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\ScoreController;
+use App\Http\Controllers\SPPController;
+use App\Http\Controllers\StudentImportExportController;
 use App\Http\Controllers\TeacherAttendanceController;
+use App\Http\Requests\MoveStudentRequest;
+use App\Http\Requests\ResetUserPasswordRequest;
+use App\Http\Requests\StoreClassroomRequest;
+use App\Http\Requests\StoreScheduleRequest;
+use App\Http\Requests\StoreScoreComponentRequest;
+use App\Http\Requests\StoreStudentRequest;
+use App\Http\Requests\StoreSubjectRequest;
+use App\Http\Requests\StoreTeacherSubjectRequest;
+use App\Http\Requests\UpdateClassroomRequest;
+use App\Http\Requests\UpdateProfileRequest;
+use App\Http\Requests\UpdateScheduleRequest;
+use App\Http\Requests\UpdateScoreComponentRequest;
+use App\Http\Requests\UpdateStudentRequest;
+use App\Http\Requests\UpdateSubjectRequest;
+use App\Http\Requests\UpdateTeacherSubjectRequest;
 use App\Models\ActivityLog;
 use App\Models\Attendance;
 use App\Models\Classroom;
@@ -20,12 +39,10 @@ use App\Models\TeacherAttendance;
 use App\Models\TeacherSubject;
 use App\Models\User;
 use App\Services\ActivityLogger;
+use App\Services\RaporService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
-use PhpOffice\PhpSpreadsheet\IOFactory;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 Route::get('/', function () {
     if (auth()->check()) {
@@ -977,4 +994,21 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ===== Cetak Surat (semua role) =====
     Route::get('/app/surat/cetak/{letter}', [LetterController::class, 'printPdf'])->name('letters.print');
+
+    // ===== SPP (semua role) =====
+    Route::get('/app/spp', [SPPController::class, 'index'])->name('spp.index');
+
+    // ===== SPP: ubah status bayar (khusus admin) =====
+    Route::middleware('role:admin')->group(function () {
+        Route::post('/app/spp/bayar', [SPPController::class, 'markPaid'])->name('spp.mark-paid');
+        Route::post('/app/spp/{studentFee}/batal', [SPPController::class, 'markUnpaid'])->name('spp.mark-unpaid');
+    });
+
+    // ===== Surat Aktif Siswa (semua role) =====
+    Route::get('/app/active-letters', [ActiveLetterController::class, 'index'])->name('active-letters.index');
+    Route::get('/app/active-letters/buat', [ActiveLetterController::class, 'create'])->name('active-letters.create');
+    Route::post('/app/active-letters', [ActiveLetterController::class, 'store'])->name('active-letters.store');
+    Route::get('/app/active-letters/{activeLetter}', [ActiveLetterController::class, 'show'])->name('active-letters.show');
+    Route::post('/app/active-letters/{activeLetter}/ambil', [ActiveLetterController::class, 'markTaken'])->name('active-letters.mark-taken');
+    Route::get('/app/active-letters/cetak/{activeLetter}', [ActiveLetterController::class, 'printPdf'])->name('active-letters.print');
 });
