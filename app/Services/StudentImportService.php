@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
@@ -57,23 +58,29 @@ class StudentImportService
                 continue;
             }
 
-            $user = User::create([
-                'name' => $name,
-                'email' => 'siswa'.$nis.'@madani.id',
-                'password' => Str::random(10),
-                'role' => 'wali_murid',
-                'must_change_password' => true,
-            ]);
+            try {
+                DB::transaction(function () use ($classroomId, $nis, $name, $gender, &$imported) {
+                    $user = User::create([
+                        'name' => $name,
+                        'email' => 'siswa'.$nis.'@madani.id',
+                        'password' => Str::random(10),
+                        'role' => 'wali_murid',
+                        'must_change_password' => true,
+                    ]);
 
-            Student::create([
-                'classroom_id' => $classroomId,
-                'user_id' => $user->id,
-                'nis' => $nis,
-                'name' => $name,
-                'gender' => $gender,
-            ]);
+                    Student::create([
+                        'classroom_id' => $classroomId,
+                        'user_id' => $user->id,
+                        'nis' => $nis,
+                        'name' => $name,
+                        'gender' => $gender,
+                    ]);
 
-            $imported++;
+                    $imported++;
+                });
+            } catch (\Throwable $e) {
+                $errors[] = 'Baris '.($index + 1).": gagal disimpan ($e->getMessage())";
+            }
         }
 
         return ['imported' => $imported, 'errors' => $errors];

@@ -197,8 +197,9 @@ class StudentController extends Controller
 
         $imported = 0;
         $skipped = 0;
+        $errors = [];
 
-        foreach ($validated['students'] as $data) {
+        foreach ($validated['students'] as $index => $data) {
             // Skip jika NIS sudah ada (mencegah duplikasi)
             if (Student::where('nis', $data['nis'])->exists()) {
                 $skipped++;
@@ -206,27 +207,33 @@ class StudentController extends Controller
                 continue;
             }
 
-            $user = User::create([
-                'name' => $data['name'],
-                'email' => "siswa{$data['nis']}@madani.id",
-                'password' => Str::random(10),
-                'role' => 'wali_murid',
-                'must_change_password' => true,
-            ]);
+            try {
+                DB::transaction(function () use ($validated, $data, &$imported) {
+                    $user = User::create([
+                        'name' => $data['name'],
+                        'email' => "siswa{$data['nis']}@madani.id",
+                        'password' => Str::random(10),
+                        'role' => 'wali_murid',
+                        'must_change_password' => true,
+                    ]);
 
-            Student::create([
-                ...$data,
-                'classroom_id' => $validated['classroom_id'],
-                'user_id' => $user->id,
-            ]);
+                    Student::create([
+                        ...$data,
+                        'classroom_id' => $validated['classroom_id'],
+                        'user_id' => $user->id,
+                    ]);
 
-            $imported++;
+                    $imported++;
+                });
+            } catch (\Throwable $e) {
+                $errors[] = 'Baris ke-'.($index + 1)." ({$data['nis']}): gagal disimpan ($e->getMessage())";
+            }
         }
 
         return response()->json([
             'success' => true,
             'message' => "Import selesai: {$imported} siswa ditambahkan, {$skipped} dilewati (NIS duplikat)",
-            'data' => ['imported' => $imported, 'skipped' => $skipped],
+            'data' => ['imported' => $imported, 'skipped' => $skipped, 'errors' => $errors],
         ]);
     }
 }

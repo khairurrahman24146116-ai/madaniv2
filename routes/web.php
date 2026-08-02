@@ -41,6 +41,7 @@ use App\Models\User;
 use App\Services\ActivityLogger;
 use App\Services\RaporService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
@@ -477,15 +478,17 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::post('/app/admin/students', function (StoreStudentRequest $req) {
             $data = $req->validated();
-            $user = User::create([
-                'name' => $data['name'],
-                'email' => 'siswa'.$data['nis'].'@madani.id',
-                'password' => Str::random(10),
-                'role' => 'wali_murid',
-                'must_change_password' => true,
-            ]);
-            $data['user_id'] = $user->id;
-            Student::create($data);
+            DB::transaction(function () use (&$data) {
+                $user = User::create([
+                    'name' => $data['name'],
+                    'email' => 'siswa'.$data['nis'].'@madani.id',
+                    'password' => Str::random(10),
+                    'role' => 'wali_murid',
+                    'must_change_password' => true,
+                ]);
+                $data['user_id'] = $user->id;
+                Student::create($data);
+            });
             ActivityLogger::log('create', 'Menambahkan siswa: '.$data['name'].' (NIS: '.$data['nis'].')');
 
             return redirect()->route('admin.students.index')->with('success', 'Siswa berhasil ditambahkan');
