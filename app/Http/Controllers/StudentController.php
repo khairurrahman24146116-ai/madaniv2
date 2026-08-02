@@ -33,6 +33,11 @@ class StudentController extends Controller
             $query->whereIn('classroom_id', $classroomIds);
         }
 
+        // RBAC: wali murid hanya melihat anaknya sendiri
+        if ($user->isWaliMurid()) {
+            $query->where('user_id', $user->id);
+        }
+
         if ($request->has('classroom_id')) {
             $query->where('classroom_id', $request->classroom_id);
         }
@@ -111,6 +116,8 @@ class StudentController extends Controller
      */
     public function show(Student $student): JsonResponse
     {
+        $this->authorize('view', $student);
+
         $student->load(['classroom', 'user']);
 
         return response()->json([
