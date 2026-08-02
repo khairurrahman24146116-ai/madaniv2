@@ -209,16 +209,7 @@ Route::middleware(['auth:sanctum', 'password.changed'])->group(function () {
         Route::get('/app/dashboard', function () {
             $user = auth()->user();
 
-            if (! $user->isAdmin() && AttendanceController::isWithinSoreHours()) {
-                $today = now()->format('Y-m-d');
-                $existing = TeacherAttendance::where('user_id', $user->id)
-                    ->where('date', $today)
-                    ->first();
-
-                if (! $existing || ! $existing->check_in) {
-                    TeacherAttendanceController::autoAttend($user->id);
-                }
-            }
+            TeacherAttendanceController::autoAttendIfWithinSoreHours($user);
 
             $schedules = Schedule::with('teacherSubject.subject', 'teacherSubject.classroom', 'teacherSubject.user')
                 ->where('day', now()->locale('id')->isoFormat('dddd'))
@@ -322,16 +313,7 @@ Route::middleware(['auth:sanctum', 'password.changed'])->group(function () {
         Route::get('/app/attendances/form', function () {
             $user = auth()->user();
 
-            if (! $user->isAdmin() && AttendanceController::isWithinSoreHours()) {
-                $today = now()->format('Y-m-d');
-                $existing = TeacherAttendance::where('user_id', $user->id)
-                    ->where('date', $today)
-                    ->first();
-
-                if (! $existing || ! $existing->check_in) {
-                    TeacherAttendanceController::autoAttend($user->id);
-                }
-            }
+            TeacherAttendanceController::autoAttendIfWithinSoreHours($user);
 
             $schedules = Schedule::with('teacherSubject.subject', 'teacherSubject.classroom')
                 ->when(! $user->isAdmin(), fn ($query) => $query->whereHas('teacherSubject', fn ($q) => $q->where('user_id', $user->id)))
@@ -396,8 +378,8 @@ Route::middleware('auth:sanctum')->group(function () {
             return view('admin.classrooms.create', compact('gurus'));
         })->name('admin.classrooms.create');
 
-        Route::post('/app/admin/classrooms', function (Request $req) {
-            $data = $req->validate(['name' => 'required', 'grade' => 'required|in:X,XI,XII', 'academic_year' => 'required', 'description' => 'nullable', 'wali_kelas_id' => 'nullable|exists:users,id']);
+        Route::post('/app/admin/classrooms', function (StoreClassroomRequest $req) {
+            $data = $req->validated();
             Classroom::create($data);
             ActivityLogger::log('create', 'Menambahkan kelas: '.$data['name']);
 
@@ -410,8 +392,8 @@ Route::middleware('auth:sanctum')->group(function () {
             return view('admin.classrooms.edit', compact('classroom', 'gurus'));
         })->name('admin.classrooms.edit');
 
-        Route::put('/app/admin/classrooms/{classroom}', function (Request $req, Classroom $classroom) {
-            $data = $req->validate(['name' => 'required', 'grade' => 'required|in:X,XI,XII', 'academic_year' => 'required', 'description' => 'nullable', 'wali_kelas_id' => 'nullable|exists:users,id']);
+        Route::put('/app/admin/classrooms/{classroom}', function (UpdateClassroomRequest $req, Classroom $classroom) {
+            $data = $req->validated();
             $classroom->update($data);
             ActivityLogger::log('update', 'Mengubah kelas: '.$data['name'], $classroom);
 
@@ -438,8 +420,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/app/admin/subjects/create', fn () => view('admin.subjects.create'))->name('admin.subjects.create');
 
-        Route::post('/app/admin/subjects', function (Request $req) {
-            $data = $req->validate(['name' => 'required', 'code' => 'required|unique:subjects,code', 'description' => 'nullable']);
+        Route::post('/app/admin/subjects', function (StoreSubjectRequest $req) {
+            $data = $req->validated();
             Subject::create($data);
             ActivityLogger::log('create', 'Menambahkan mapel: '.$data['name'].' ('.$data['code'].')');
 
@@ -448,8 +430,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/app/admin/subjects/{subject}/edit', fn (Subject $subject) => view('admin.subjects.edit', compact('subject')))->name('admin.subjects.edit');
 
-        Route::put('/app/admin/subjects/{subject}', function (Request $req, Subject $subject) {
-            $data = $req->validate(['name' => 'required', 'code' => 'required|unique:subjects,code,'.$subject->id, 'description' => 'nullable']);
+        Route::put('/app/admin/subjects/{subject}', function (UpdateSubjectRequest $req, Subject $subject) {
+            $data = $req->validated();
             $subject->update($data);
             ActivityLogger::log('update', 'Mengubah mapel: '.$data['name'], $subject);
 
@@ -515,18 +497,8 @@ Route::middleware('auth:sanctum')->group(function () {
             return view('admin.students.edit', compact('student', 'classrooms'));
         })->name('admin.students.edit');
 
-        Route::put('/app/admin/students/{student}', function (Request $req, Student $student) {
-            $data = $req->validate([
-                'classroom_id' => 'required|exists:classrooms,id',
-                'nis' => 'required|unique:students,nis,'.$student->id,
-                'name' => 'required',
-                'gender' => 'required|in:L,P',
-                'birth_date' => 'nullable|date',
-                'address' => 'nullable',
-                'phone' => 'nullable',
-                'parent_name' => 'nullable',
-                'parent_phone' => 'nullable',
-            ]);
+        Route::put('/app/admin/students/{student}', function (UpdateStudentRequest $req, Student $student) {
+            $data = $req->validated();
             $student->user->update(['name' => $data['name']]);
             $student->update($data);
             ActivityLogger::log('update', 'Mengubah siswa: '.$data['name'].' (NIS: '.$data['nis'].')', $student);
@@ -551,8 +523,8 @@ Route::middleware('auth:sanctum')->group(function () {
             return view('admin.students.move', compact('student', 'classrooms'));
         })->name('admin.students.move-form');
 
-        Route::post('/app/admin/students/{student}/move', function (Request $req, Student $student) {
-            $data = $req->validate(['classroom_id' => 'required|exists:classrooms,id']);
+        Route::post('/app/admin/students/{student}/move', function (MoveStudentRequest $req, Student $student) {
+            $data = $req->validated();
             $oldClassroom = $student->classroom->name;
             $student->update(['classroom_id' => $data['classroom_id']]);
             ActivityLogger::log('update', "Memindahkan siswa {$student->name} (NIS: {$student->nis}) dari {$oldClassroom} ke kelas baru");
@@ -580,12 +552,8 @@ Route::middleware('auth:sanctum')->group(function () {
             return view('admin.teacher-subjects.create', compact('teachers', 'subjects', 'classrooms'));
         })->name('admin.teacher-subjects.create');
 
-        Route::post('/app/admin/teacher-subjects', function (Request $req) {
-            $data = $req->validate([
-                'user_id' => 'required|exists:users,id',
-                'subject_id' => 'required|exists:subjects,id',
-                'classroom_id' => 'required|exists:classrooms,id',
-            ]);
+        Route::post('/app/admin/teacher-subjects', function (StoreTeacherSubjectRequest $req) {
+            $data = $req->validated();
             TeacherSubject::firstOrCreate($data);
             ActivityLogger::log('create', 'Menambahkan mapping guru-mapel-kelas');
 
@@ -600,12 +568,8 @@ Route::middleware('auth:sanctum')->group(function () {
             return view('admin.teacher-subjects.edit', compact('teacherSubject', 'teachers', 'subjects', 'classrooms'));
         })->name('admin.teacher-subjects.edit');
 
-        Route::put('/app/admin/teacher-subjects/{teacher_subject}', function (Request $req, TeacherSubject $teacherSubject) {
-            $data = $req->validate([
-                'user_id' => 'required|exists:users,id',
-                'subject_id' => 'required|exists:subjects,id',
-                'classroom_id' => 'required|exists:classrooms,id',
-            ]);
+        Route::put('/app/admin/teacher-subjects/{teacher_subject}', function (UpdateTeacherSubjectRequest $req, TeacherSubject $teacherSubject) {
+            $data = $req->validated();
             $teacherSubject->update($data);
             ActivityLogger::log('update', 'Mengubah mapping guru-mapel-kelas', $teacherSubject);
 
@@ -633,14 +597,8 @@ Route::middleware('auth:sanctum')->group(function () {
             return view('admin.schedules.create', compact('mappings'));
         })->name('admin.schedules.create');
 
-        Route::post('/app/admin/schedules', function (Request $req) {
-            $data = $req->validate([
-                'teacher_subject_id' => 'required|exists:teacher_subjects,id',
-                'day' => 'required|in:senin,selasa,rabu,kamis,jumat,sabtu',
-                'start_time' => 'required',
-                'end_time' => 'required',
-                'hour_order' => 'required|integer|min:1|max:4',
-            ]);
+        Route::post('/app/admin/schedules', function (StoreScheduleRequest $req) {
+            $data = $req->validated();
             Schedule::create($data);
             ActivityLogger::log('create', 'Menambahkan jadwal: '.ucfirst($data['day']).' jam '.$data['start_time']);
 
@@ -653,14 +611,8 @@ Route::middleware('auth:sanctum')->group(function () {
             return view('admin.schedules.edit', compact('schedule', 'mappings'));
         })->name('admin.schedules.edit');
 
-        Route::put('/app/admin/schedules/{schedule}', function (Request $req, Schedule $schedule) {
-            $data = $req->validate([
-                'teacher_subject_id' => 'required|exists:teacher_subjects,id',
-                'day' => 'required|in:senin,selasa,rabu,kamis,jumat,sabtu',
-                'start_time' => 'required',
-                'end_time' => 'required',
-                'hour_order' => 'required|integer|min:1|max:4',
-            ]);
+        Route::put('/app/admin/schedules/{schedule}', function (UpdateScheduleRequest $req, Schedule $schedule) {
+            $data = $req->validated();
             $schedule->update($data);
             ActivityLogger::log('update', 'Mengubah jadwal: '.ucfirst($data['day']).' jam '.$data['start_time'], $schedule);
 
@@ -689,15 +641,8 @@ Route::middleware('auth:sanctum')->group(function () {
             return view('admin.score-components.create', compact('subjects'));
         })->name('admin.score-components.create');
 
-        Route::post('/app/admin/score-components', function (Request $req) {
-            $data = $req->validate([
-                'subject_id' => 'required|exists:subjects,id',
-                'code' => 'required|in:tugas,ph,uts,uas',
-                'name' => 'required',
-                'weight' => 'required|numeric|min:0|max:100',
-                'semester' => 'required|in:ganjil,genap',
-                'academic_year' => 'required',
-            ]);
+        Route::post('/app/admin/score-components', function (StoreScoreComponentRequest $req) {
+            $data = $req->validated();
             ScoreComponent::create($data);
             ActivityLogger::log('create', 'Menambahkan bobot nilai: '.$data['name'].' ('.$data['code'].')');
 
@@ -710,15 +655,8 @@ Route::middleware('auth:sanctum')->group(function () {
             return view('admin.score-components.edit', compact('scoreComponent', 'subjects'));
         })->name('admin.score-components.edit');
 
-        Route::put('/app/admin/score-components/{score_component}', function (Request $req, ScoreComponent $scoreComponent) {
-            $data = $req->validate([
-                'subject_id' => 'required|exists:subjects,id',
-                'code' => 'required|in:tugas,ph,uts,uas',
-                'name' => 'required',
-                'weight' => 'required|numeric|min:0|max:100',
-                'semester' => 'required|in:ganjil,genap',
-                'academic_year' => 'required',
-            ]);
+        Route::put('/app/admin/score-components/{score_component}', function (UpdateScoreComponentRequest $req, ScoreComponent $scoreComponent) {
+            $data = $req->validated();
             $scoreComponent->update($data);
             ActivityLogger::log('update', 'Mengubah bobot nilai: '.$data['name'], $scoreComponent);
 

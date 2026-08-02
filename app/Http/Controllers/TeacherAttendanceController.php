@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Schedule;
 use App\Models\TeacherAttendance;
+use App\Models\User;
 use App\Services\ActivityLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -300,6 +301,28 @@ class TeacherAttendanceController extends Controller
                 'check_in' => now(),
             ]
         );
+    }
+
+    /**
+     * Auto-attend guru bila sedang dalam jam sore dan belum ada catatan
+     * check-in hari ini. Admin dilewati (tidak menerapkan auto-attendance).
+     *
+     * Dipanggil dari halaman dashboard & form absensi guru supaya logic
+     * auto-attend hanya terdefinisi di satu tempat.
+     */
+    public static function autoAttendIfWithinSoreHours(User $user): void
+    {
+        if ($user->isAdmin() || ! AttendanceController::isWithinSoreHours()) {
+            return;
+        }
+
+        $existing = TeacherAttendance::where('user_id', $user->id)
+            ->where('date', now()->format('Y-m-d'))
+            ->first();
+
+        if (! $existing || ! $existing->check_in) {
+            self::autoAttend($user->id);
+        }
     }
 
     private function authorizeAttendance(TeacherAttendance $attendance): void
