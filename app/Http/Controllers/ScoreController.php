@@ -4,10 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Attendance;
 use App\Models\Score;
-use App\Models\ScoreComponent;
 use App\Models\Student;
 use App\Models\Subject;
 use App\Models\TeacherSubject;
+use App\Services\RaporService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -286,59 +286,16 @@ class ScoreController extends Controller
         $semester = $request->semester;
         $academicYear = $request->academic_year;
 
-        // Ambil bobot komponen untuk mapel & semester ini
-        $components = ScoreComponent::where('subject_id', $subjectId)
-            ->where('semester', $semester)
-            ->where('academic_year', $academicYear)
-            ->get()
-            ->keyBy('code');
+        $result = app(RaporService::class)->calculateSubjectGrade(
+            $studentId, $subjectId, $semester, $academicYear
+        );
 
-        if ($components->isEmpty()) {
+        if (! $result) {
             return response()->json([
                 'success' => false,
                 'message' => 'Bobot komponen belum dikonfigurasi untuk mapel & semester ini',
             ], 422);
         }
-
-        // Ambil semua nilai siswa untuk mapel & semester ini
-        $scores = Score::where('student_id', $studentId)
-            ->where('subject_id', $subjectId)
-            ->where('semester', $semester)
-            ->where('academic_year', $academicYear)
-            ->get();
-
-        // Hitung rata-rata per komponen
-        $averages = $scores->groupBy('component_code')->map(function ($group) {
-            return $group->avg('value');
-        });
-
-        // Hitung NA berdasarkan bobot
-        $detail = [];
-        $totalWeighted = 0;
-        $totalWeight = 0;
-
-        foreach (['tugas', 'ph', 'uts', 'uas'] as $code) {
-            $component = $components->get($code);
-            $avgScore = $averages->get($code);
-            $weight = $component?->weight ?? 0;
-
-            $weightedScore = $avgScore !== null ? round($avgScore * $weight / 100, 2) : null;
-
-            $detail[$code] = [
-                'name' => $component?->name ?? ucfirst($code),
-                'weight' => $weight,
-                'average_score' => $avgScore ? round($avgScore, 2) : null,
-                'weighted_score' => $weightedScore,
-                'count' => $scores->where('component_code', $code)->count(),
-            ];
-
-            if ($weightedScore !== null) {
-                $totalWeighted += $weightedScore;
-                $totalWeight += $weight;
-            }
-        }
-
-        $finalGrade = $totalWeight > 0 ? round($totalWeighted, 2) : null;
 
         return response()->json([
             'success' => true,
@@ -347,10 +304,10 @@ class ScoreController extends Controller
                 'subject' => Subject::find($subjectId)->only(['id', 'name', 'code']),
                 'semester' => $semester,
                 'academic_year' => $academicYear,
-                'components' => $detail,
-                'total_weight' => $totalWeight,
-                'final_grade' => $finalGrade,
-                'passed' => $finalGrade !== null ? $finalGrade >= 75 : null,
+                'components' => $result['components'],
+                'total_weight' => $result['total_weight'],
+                'final_grade' => $result['final_grade'],
+                'passed' => $result['passed'],
             ],
         ]);
     }
@@ -390,20 +347,11 @@ class ScoreController extends Controller
             ->get();
 
         $results = $students->map(function ($student) use ($request) {
-            // Hitung NA per siswa dengan memanggil logika yang sama
-            $scores = Score::where('student_id', $student->id)
-                ->where('subject_id', $request->subject_id)
-                ->where('semester', $request->semester)
-                ->where('academic_year', $request->academic_year)
-                ->get();
+            $result = app(RaporService::class)->calculateSubjectGrade(
+                $student->id, $request->subject_id, $request->semester, $request->academic_year
+            );
 
-            $components = ScoreComponent::where('subject_id', $request->subject_id)
-                ->where('semester', $request->semester)
-                ->where('academic_year', $request->academic_year)
-                ->get()
-                ->keyBy('code');
-
-            if ($components->isEmpty() || $scores->isEmpty()) {
+            if (! $result) {
                 return [
                     'student_id' => $student->id,
                     'student_name' => $student->name,
@@ -413,28 +361,12 @@ class ScoreController extends Controller
                 ];
             }
 
-            $averages = $scores->groupBy('component_code')->map(fn ($g) => $g->avg('value'));
-            $totalWeighted = 0;
-            $totalWeight = 0;
-
-            foreach (['tugas', 'ph', 'uts', 'uas'] as $code) {
-                $component = $components->get($code);
-                $avgScore = $averages->get($code);
-                $weight = $component?->weight ?? 0;
-                if ($avgScore !== null) {
-                    $totalWeighted += $avgScore * $weight / 100;
-                    $totalWeight += $weight;
-                }
-            }
-
-            $finalGrade = $totalWeight > 0 ? round($totalWeighted, 2) : null;
-
             return [
                 'student_id' => $student->id,
                 'student_name' => $student->name,
                 'nis' => $student->nis,
-                'final_grade' => $finalGrade,
-                'passed' => $finalGrade !== null ? $finalGrade >= 75 : null,
+                'final_grade' => $result['final_grade'],
+                'passed' => $result['passed'],
             ];
         });
 
@@ -447,62 +379,6 @@ class ScoreController extends Controller
                 'students' => $results,
             ],
         ]);
-    }
-
-    /**
-     * Helper: hitung NA untuk satu siswa + satu mapel.
-     */
-    private function calculateSubjectFinalGrade(int $studentId, int $subjectId, string $semester, string $academicYear): ?array
-    {
-        $scores = Score::where('student_id', $studentId)
-            ->where('subject_id', $subjectId)
-            ->where('semester', $semester)
-            ->where('academic_year', $academicYear)
-            ->get();
-
-        $components = ScoreComponent::where('subject_id', $subjectId)
-            ->where('semester', $semester)
-            ->where('academic_year', $academicYear)
-            ->get()
-            ->keyBy('code');
-
-        if ($components->isEmpty()) {
-            return null;
-        }
-
-        $averages = $scores->groupBy('component_code')->map(fn ($g) => $g->avg('value'));
-        $detail = [];
-        $totalWeighted = 0;
-        $totalWeight = 0;
-
-        foreach (['tugas', 'ph', 'uts', 'uas'] as $code) {
-            $component = $components->get($code);
-            $avgScore = $averages->get($code);
-            $weight = $component?->weight ?? 0;
-            $weightedScore = $avgScore !== null ? round($avgScore * $weight / 100, 2) : null;
-
-            $detail[$code] = [
-                'name' => $component?->name ?? ucfirst($code),
-                'weight' => $weight,
-                'average_score' => $avgScore ? round($avgScore, 2) : null,
-                'weighted_score' => $weightedScore,
-                'count' => $scores->where('component_code', $code)->count(),
-            ];
-
-            if ($weightedScore !== null) {
-                $totalWeighted += $weightedScore;
-                $totalWeight += $weight;
-            }
-        }
-
-        $finalGrade = $totalWeight > 0 ? round($totalWeighted, 2) : null;
-
-        return [
-            'components' => $detail,
-            'total_weight' => $totalWeight,
-            'final_grade' => $finalGrade,
-            'passed' => $finalGrade !== null ? $finalGrade >= 75 : null,
-        ];
     }
 
     /**
@@ -536,34 +412,8 @@ class ScoreController extends Controller
         $semester = $request->semester;
         $academicYear = $request->academic_year;
 
-        // Ambil semua mapel yang dipelajari kelas ini
-        $subjects = Subject::whereHas('teacherSubjects', fn ($q) => $q->where('classroom_id', $student->classroom_id)
-        )->orderBy('name')->get();
-
-        $subjectReports = [];
-        $totalGrade = 0;
-        $subjectCount = 0;
-
-        foreach ($subjects as $subject) {
-            $result = $this->calculateSubjectFinalGrade(
-                $student->id, $subject->id, $semester, $academicYear
-            );
-
-            $subjectReports[] = [
-                'subject_id' => $subject->id,
-                'subject_name' => $subject->name,
-                'subject_code' => $subject->code,
-                'components' => $result ? $result['components'] : null,
-                'total_weight' => $result ? $result['total_weight'] : 0,
-                'final_grade' => $result ? $result['final_grade'] : null,
-                'passed' => $result ? $result['passed'] : null,
-            ];
-
-            if ($result && $result['final_grade'] !== null) {
-                $totalGrade += $result['final_grade'];
-                $subjectCount++;
-            }
-        }
+        $rapor = app(RaporService::class)->generate($student, $semester, $academicYear);
+        $subjectReports = $rapor['subjects'];
 
         // Ambil ringkasan absensi untuk semester ini
         $attendanceSummary = Attendance::whereHas('student', fn ($q) => $q->where('id', $student->id)
@@ -574,7 +424,7 @@ class ScoreController extends Controller
             ->groupBy('status')
             ->pluck('total', 'status');
 
-        $overallAverage = $subjectCount > 0 ? round($totalGrade / $subjectCount, 2) : null;
+        $overallAverage = $rapor['overall_average'];
 
         return response()->json([
             'success' => true,
@@ -585,9 +435,7 @@ class ScoreController extends Controller
                 'academic_year' => $academicYear,
                 'subjects' => $subjectReports,
                 'overall_average' => $overallAverage,
-                'passed_all' => $subjectCount > 0
-                    ? collect($subjectReports)->every(fn ($s) => $s['passed'] !== false)
-                    : null,
+                'passed_all' => $rapor['passed_all'],
                 'attendance' => [
                     'total' => $attendanceSummary->sum(),
                     'H' => (int) $attendanceSummary->get('H', 0),
@@ -626,33 +474,9 @@ class ScoreController extends Controller
         $semester = $request->semester;
         $academicYear = $request->academic_year;
 
-        $subjects = Subject::whereHas('teacherSubjects', fn ($q) => $q->where('classroom_id', $student->classroom_id)
-        )->orderBy('name')->get();
-
-        $subjectReports = [];
-        $totalGrade = 0;
-        $subjectCount = 0;
-
-        foreach ($subjects as $subject) {
-            $result = $this->calculateSubjectFinalGrade(
-                $student->id, $subject->id, $semester, $academicYear
-            );
-
-            $subjectReports[] = [
-                'subject_id' => $subject->id,
-                'subject_name' => $subject->name,
-                'subject_code' => $subject->code,
-                'components' => $result ? $result['components'] : null,
-                'total_weight' => $result ? $result['total_weight'] : 0,
-                'final_grade' => $result ? $result['final_grade'] : null,
-                'passed' => $result ? $result['passed'] : null,
-            ];
-
-            if ($result && $result['final_grade'] !== null) {
-                $totalGrade += $result['final_grade'];
-                $subjectCount++;
-            }
-        }
+        $rapor = app(RaporService::class)->generate($student, $semester, $academicYear);
+        $subjectReports = $rapor['subjects'];
+        $subjectCount = collect($subjectReports)->whereNotNull('final_grade')->count();
 
         $attendanceSummary = Attendance::whereHas('student', fn ($q) => $q->where('id', $student->id)
         )->whereHas('schedule', fn ($q) => $q->whereHas('teacherSubject', fn ($qs) => $qs->where('classroom_id', $student->classroom_id)
@@ -662,7 +486,7 @@ class ScoreController extends Controller
             ->groupBy('status')
             ->pluck('total', 'status');
 
-        $overallAverage = $subjectCount > 0 ? round($totalGrade / $subjectCount, 2) : null;
+        $overallAverage = $rapor['overall_average'];
 
         $verificationCode = strtoupper(hash('sha256', implode('|', [
             $student->id,

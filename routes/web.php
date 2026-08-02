@@ -143,47 +143,30 @@ Route::middleware(['auth:sanctum', 'password.changed'])->group(function () {
                 abort(403);
             }
 
-            $subjects = Subject::with('scoreComponents')->get();
+            $semester = request('semester', 'ganjil');
+            $academicYear = request('academic_year', '2025/2026');
+            $raporService = app(RaporService::class);
             $rapor = collect();
 
-            foreach ($subjects as $subject) {
-                $scores = Score::where('student_id', $student->id)
-                    ->where('subject_id', $subject->id)
-                    ->get();
+            foreach (Subject::with('scoreComponents')->get() as $subject) {
+                $result = $raporService->calculateSubjectGrade(
+                    $student->id, $subject->id, $semester, $academicYear
+                );
 
-                if ($scores->isEmpty()) {
+                if (! $result || $result['final_grade'] === null) {
                     continue;
                 }
 
-                $components = $subject->scoreComponents;
-                $componentData = [];
-
-                foreach ($components as $comp) {
-                    $compScores = $scores->where('component_code', $comp->code);
-                    if ($compScores->isEmpty()) {
-                        continue;
-                    }
-
-                    $avgValue = $compScores->avg('value');
-                    $weighted = ($avgValue * $comp->weight) / 100;
-
-                    $componentData[] = [
-                        'name' => $comp->name,
-                        'value' => $avgValue,
-                        'weight' => $comp->weight,
-                        'weighted' => $weighted,
-                    ];
-                }
-
-                if (empty($componentData)) {
-                    continue;
-                }
-
-                $finalGrade = array_sum(array_column($componentData, 'weighted'));
+                $componentData = collect($result['components'])->map(fn ($comp) => [
+                    'name' => $comp['name'],
+                    'value' => $comp['average_score'],
+                    'weight' => $comp['weight'],
+                    'weighted' => $comp['weighted_score'],
+                ])->values()->all();
 
                 $rapor->push([
                     'subject' => $subject->name,
-                    'final_grade' => $finalGrade,
+                    'final_grade' => $result['final_grade'],
                     'components' => $componentData,
                 ]);
             }
@@ -304,34 +287,21 @@ Route::middleware(['auth:sanctum', 'password.changed'])->group(function () {
 
             $grades = collect();
             if ($student) {
-                $subjects = Subject::with('scoreComponents')->get();
-                foreach ($subjects as $subject) {
-                    $scores = Score::where('student_id', $student->id)
-                        ->where('subject_id', $subject->id)
-                        ->where('semester', $semester)
-                        ->where('academic_year', $academicYear)
-                        ->get();
+                $raporService = app(RaporService::class);
+                foreach (Subject::with('scoreComponents')->get() as $subject) {
+                    $result = $raporService->calculateSubjectGrade(
+                        $student->id, $subject->id, $semester, $academicYear
+                    );
 
-                    if ($scores->isEmpty()) {
+                    if (! $result || $result['final_grade'] === null) {
                         continue;
                     }
 
-                    $total = 0;
-                    $totalWeight = 0;
-                    foreach ($subject->scoreComponents as $comp) {
-                        $compScores = $scores->where('component_code', $comp->code);
-                        if ($compScores->isEmpty()) {
-                            continue;
-                        }
-                        $avg = $compScores->avg('value');
-                        $total += $avg * ($comp->weight / 100);
-                        $totalWeight += $comp->weight;
-                    }
-
-                    if ($totalWeight > 0) {
-                        $finalScore = round(($total / $totalWeight) * 100, 2);
-                        $grades->push(['subject' => $subject->name, 'score' => $finalScore, 'kkm' => 70]);
-                    }
+                    $grades->push([
+                        'subject' => $subject->name,
+                        'score' => $result['final_grade'],
+                        'kkm' => 70,
+                    ]);
                 }
 
                 $attendanceStats = [
