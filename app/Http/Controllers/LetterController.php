@@ -78,6 +78,8 @@ class LetterController extends Controller
 
     public function show(Letter $letter)
     {
+        $this->authorize('view', $letter);
+
         return view('letters.show', compact('letter'));
     }
 
@@ -101,6 +103,8 @@ class LetterController extends Controller
 
     public function printPdf(Letter $letter)
     {
+        $this->authorize('view', $letter);
+
         $pdf = Pdf::loadView('pdf.letter', [
             'letter' => $letter,
             'school' => 'SMA Dayah Madani Al-Aziziyah',

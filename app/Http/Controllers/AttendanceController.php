@@ -62,6 +62,9 @@ class AttendanceController extends Controller
         }
 
         if ($request->has('student_id')) {
+            $student = Student::findOrFail($request->student_id);
+            $this->authorize('view', $student);
+
             $query->where('student_id', $request->student_id);
         }
 

@@ -91,6 +91,8 @@ class ActiveLetterController extends Controller
 
     public function show(ActiveLetterRequest $activeLetter)
     {
+        $this->authorize('view', $activeLetter);
+
         $activeLetter->load(['student.classroom', 'teacher', 'approver', 'taker']);
 
         return view('active-letters.show', compact('activeLetter'));
@@ -98,6 +100,8 @@ class ActiveLetterController extends Controller
 
     public function markTaken(Request $request, ActiveLetterRequest $activeLetter): RedirectResponse
     {
+        $this->authorize('update', $activeLetter);
+
         if ($activeLetter->status !== 'selesai') {
             return redirect()->back()->with('error', 'Hanya surat dengan status selesai yang bisa diambil');
         }
@@ -115,6 +119,8 @@ class ActiveLetterController extends Controller
 
     public function printPdf(ActiveLetterRequest $activeLetter)
     {
+        $this->authorize('view', $activeLetter);
+
         if (! in_array($activeLetter->status, ['selesai', 'diambil'])) {
             return redirect()->back()->with('error', 'Surat hanya bisa dicetak saat status selesai atau diambil');
         }

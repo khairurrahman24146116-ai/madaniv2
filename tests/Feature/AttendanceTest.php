@@ -62,6 +62,17 @@ class AttendanceTest extends TestCase
         $response->assertStatus(200);
     }
 
+    public function test_guru_cannot_filter_index_by_student_outside_taught_class(): void
+    {
+        $guru = User::where('email', 'ahmad@madani.id')->firstOrFail();
+        $taughtClassroomIds = $guru->teacherSubjects()->pluck('classroom_id')->unique();
+        $awayStudent = Student::whereNotIn('classroom_id', $taughtClassroomIds)->firstOrFail();
+
+        $this->withToken($this->guruToken)
+            ->getJson('/attendances?student_id='.$awayStudent->id)
+            ->assertForbidden();
+    }
+
     public function test_show(): void
     {
         $attendance = Attendance::first();

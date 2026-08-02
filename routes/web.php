@@ -42,6 +42,7 @@ use App\Services\ActivityLogger;
 use App\Services\RaporService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
@@ -56,7 +57,7 @@ Route::get('/', function () {
 });
 
 // ===== Web Login =====
-Route::post('/auth/login/web', [AuthController::class, 'loginWeb'])->name('auth.login.web');
+Route::post('/auth/login/web', [AuthController::class, 'loginWeb'])->name('auth.login.web')->middleware('throttle:5,1');
 Route::post('/auth/logout/web', [AuthController::class, 'logoutWeb'])->name('auth.logout.web');
 
 // ===== Ganti Password Wajib (must_change_password) =====
@@ -78,9 +79,9 @@ Route::get('/login', function () {
 // ===== Password Reset =====
 Route::middleware('guest')->group(function () {
     Route::get('/forgot-password', [PasswordResetController::class, 'forgotPassword'])->name('password.request');
-    Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink'])->name('password.email');
+    Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink'])->name('password.email')->middleware('throttle:3,1');
     Route::get('/reset-password/{token}', [PasswordResetController::class, 'resetForm'])->name('password.reset');
-    Route::post('/reset-password', [PasswordResetController::class, 'updatePassword'])->name('password.update');
+    Route::post('/reset-password', [PasswordResetController::class, 'updatePassword'])->name('password.update')->middleware('throttle:5,1');
 });
 
 // ===== Halaman View (dengan middleware auth) =====
@@ -274,6 +275,8 @@ Route::middleware(['auth:sanctum', 'password.changed'])->group(function () {
         Route::get('/app/scores/rapor-preview', function () {
             $studentId = request('student_id', Student::first()?->id);
             $student = Student::with('classroom')->find($studentId);
+
+            Gate::authorize('view', $student);
             $semester = request('semester', 'ganjil');
             $academicYear = request('academic_year', '2025/2026');
 
@@ -740,7 +743,7 @@ Route::middleware('auth:sanctum')->group(function () {
                 <span class="font-mono text-blue-700 dark:text-blue-300 select-all text-[16px] tracking-wider">'.e($plainPassword).'</span>
                 <button onclick="navigator.clipboard.writeText(\''.e($plainPassword).'\');this.textContent=\'Disalin!\'" class="ml-sm text-label-sm text-blue-600 hover:text-blue-800 underline" type="button">Salin</button>
             </div>');
-        })->name('admin.users.reset-password');
+        })->name('admin.users.reset-password')->middleware('throttle:10,1');
 
         // ===== Surat =====
         Route::get('/app/admin/surat', [LetterController::class, 'adminIndex'])->name('admin.letters.index');

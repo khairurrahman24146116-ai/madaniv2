@@ -14,6 +14,8 @@ class ActiveLetterRequest extends Model
     use HasFactory;
     use LogsActivity;
 
+    protected $table = 'student_letter_requests';
+
     protected function casts(): array
     {
         return [

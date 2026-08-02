@@ -114,7 +114,7 @@ class StudentController extends Controller
     /**
      * Menampilkan detail siswa.
      */
-    public function show(Student $student): JsonResponse
+    public function show(Request $request, Student $student): JsonResponse
     {
         $this->authorize('view', $student);
 

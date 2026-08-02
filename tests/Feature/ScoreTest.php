@@ -10,6 +10,7 @@ use App\Models\TeacherSubject;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class ScoreTest extends TestCase
@@ -164,6 +165,41 @@ class ScoreTest extends TestCase
         $response->assertStatus(403);
     }
 
+    public function test_guru_cannot_view_rapor_of_student_outside_taught_class(): void
+    {
+        $guru = User::where('email', 'ahmad@madani.id')->firstOrFail();
+        $taughtClassroomIds = $guru->teacherSubjects()->pluck('classroom_id')->unique();
+
+        $awayStudent = Student::whereNotIn('classroom_id', $taughtClassroomIds)->first();
+
+        $this->assertNotNull($awayStudent, 'Butuh siswa di luar kelas yang diajar guru');
+
+        $response = $this->withToken($this->guruToken)
+            ->getJson('/scores/rapor?student_id='.$awayStudent->id.'&semester=ganjil&academic_year=2025/2026');
+        $response->assertStatus(403);
+    }
+
+    public function test_guru_cannot_filter_index_by_student_outside_taught_class(): void
+    {
+        $guru = User::where('email', 'ahmad@madani.id')->firstOrFail();
+        $taughtClassroomIds = $guru->teacherSubjects()->pluck('classroom_id')->unique();
+        $awayStudent = Student::whereNotIn('classroom_id', $taughtClassroomIds)->firstOrFail();
+
+        $this->withToken($this->guruToken)
+            ->getJson('/scores?student_id='.$awayStudent->id)
+            ->assertForbidden();
+    }
+
+    public function test_admin_can_access_any_students_rapor(): void
+    {
+        $admin = User::where('email', 'admin@madani.id')->firstOrFail();
+        $adminToken = $admin->createToken('test')->plainTextToken;
+
+        $this->withToken($adminToken)
+            ->getJson('/scores/rapor?student_id=1&semester=ganjil&academic_year=2025/2026')
+            ->assertOk();
+    }
+
     public function test_rapor_pdf(): void
     {
         $response = $this->withToken($this->guruToken)
@@ -171,6 +207,18 @@ class ScoreTest extends TestCase
         $response->assertStatus(200);
         $response->assertHeader('Content-Type', 'application/pdf');
         $this->assertStringContainsString('rapor_1001_ganjil_2025-2026.pdf', $response->headers->get('Content-Disposition'));
+    }
+
+    public function test_guru_cannot_preview_rapor_of_student_outside_taught_class(): void
+    {
+        $guru = User::where('email', 'ahmad@madani.id')->firstOrFail();
+        $taughtClassroomIds = $guru->teacherSubjects()->pluck('classroom_id')->unique();
+        $awayStudent = Student::whereNotIn('classroom_id', $taughtClassroomIds)->firstOrFail();
+
+        Sanctum::actingAs($guru);
+
+        $this->get('/app/scores/rapor-preview?student_id='.$awayStudent->id)
+            ->assertForbidden();
     }
 
     public function test_export_csv(): void

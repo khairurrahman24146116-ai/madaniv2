@@ -56,6 +56,9 @@ class ScoreController extends Controller
         }
 
         if ($request->has('student_id')) {
+            $student = Student::findOrFail($request->student_id);
+            $this->authorize('view', $student);
+
             $query->where('student_id', $request->student_id);
         }
 
@@ -397,18 +400,10 @@ class ScoreController extends Controller
             'academic_year' => 'required|string|max:9',
         ]);
 
-        $user = $request->user();
         $student = Student::with('classroom')->findOrFail($request->student_id);
 
-        if ($user->isWaliMurid()) {
-            $allowedIds = $user->students()->pluck('id')->toArray();
-            if (! in_array($student->id, $allowedIds)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Anda hanya bisa melihat rapor anak Anda sendiri',
-                ], 403);
-            }
-        }
+        $this->authorize('view', $student);
+
         $semester = $request->semester;
         $academicYear = $request->academic_year;
 
@@ -462,15 +457,10 @@ class ScoreController extends Controller
             'academic_year' => 'required|string|max:9',
         ]);
 
-        $user = $request->user();
         $student = Student::with('classroom')->findOrFail($request->student_id);
 
-        if ($user->isWaliMurid()) {
-            $allowedIds = $user->students()->pluck('id')->toArray();
-            if (! in_array($student->id, $allowedIds)) {
-                abort(403, 'Anda hanya bisa melihat rapor anak Anda sendiri');
-            }
-        }
+        $this->authorize('view', $student);
+
         $semester = $request->semester;
         $academicYear = $request->academic_year;
 
