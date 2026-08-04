@@ -675,12 +675,31 @@ Route::middleware('auth:sanctum')->group(function () {
 
             ActivityLogger::log('update', 'Reset password: '.$user->name.' ('.$user->email.')');
 
-            return redirect()->route('admin.users.index')->with('success', 'Password untuk <strong>'.$user->name.'</strong> berhasil direset.
-            <div class="mt-sm p-sm bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                <span class="font-mono text-blue-700 dark:text-blue-300 select-all text-[16px] tracking-wider">'.e($plainPassword).'</span>
-                <button onclick="navigator.clipboard.writeText(\''.e($plainPassword).'\');this.textContent=\'Disalin!\'" class="ml-sm text-label-sm text-blue-600 hover:text-blue-800 underline" type="button">Salin</button>
-            </div>');
+            // Simpan password SEKALI pakai saja (single-use). Hilang setelah ditampilkan.
+            session()->put('pending_reset_password', [
+                'user_id' => $user->id,
+                'user_name' => $user->name,
+                'password' => $plainPassword,
+            ]);
+
+            return redirect()->route('admin.users.password-reveal', $user);
         })->name('admin.users.reset-password')->middleware('throttle:10,1');
+
+        // Halaman khusus yang menampilkan password SEKALI setelah reset.
+        // Password diambil dari session single-use lalu dihapus, sehingga
+        // refresh/back/tebus tidak akan menampilkan lagi.
+        Route::get('/app/admin/users/{user}/password-reveal', function (User $user) {
+            $pending = session()->pull('pending_reset_password');
+
+            if ($pending === null || (int) $pending['user_id'] !== (int) $user->id) {
+                return redirect()->route('admin.users.index');
+            }
+
+            return view('admin.users.password-reveal', [
+                'userName' => $pending['user_name'],
+                'password' => $pending['password'],
+            ]);
+        })->name('admin.users.password-reveal')->middleware('throttle:10,1');
 
         // ===== Surat =====
         Route::get('/app/admin/surat', [LetterController::class, 'adminIndex'])->name('admin.letters.index');
