@@ -2,9 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreSubjectRequest;
+use App\Http\Requests\UpdateSubjectRequest;
 use App\Models\Subject;
+use App\Services\ActivityLogger;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 /**
  * Controller Subject — CRUD mata pelajaran.
@@ -111,5 +116,72 @@ class SubjectController extends Controller
             'success' => true,
             'message' => 'Mata pelajaran berhasil dihapus',
         ]);
+    }
+
+    /**
+     * Web (admin): daftar mata pelajaran.
+     */
+    public function webIndex(): View
+    {
+        $subjects = Subject::withCount('teacherSubjects')->orderBy('name')->paginate(50);
+
+        return view('admin.subjects.index', compact('subjects'));
+    }
+
+    /**
+     * Web (admin): form tambah mapel.
+     */
+    public function webCreate(): View
+    {
+        return view('admin.subjects.create');
+    }
+
+    /**
+     * Web (admin): simpan mapel baru.
+     */
+    public function webStore(StoreSubjectRequest $request): RedirectResponse
+    {
+        $data = $request->validated();
+        Subject::create($data);
+        ActivityLogger::log('create', 'Menambahkan mapel: '.$data['name'].' ('.$data['code'].')');
+
+        return redirect()->route('admin.subjects.index')->with('success', 'Mapel berhasil ditambahkan');
+    }
+
+    /**
+     * Web (admin): form edit mapel.
+     */
+    public function webEdit(Subject $subject): View
+    {
+        return view('admin.subjects.edit', compact('subject'));
+    }
+
+    /**
+     * Web (admin): perbarui mapel.
+     */
+    public function webUpdate(UpdateSubjectRequest $request, Subject $subject): RedirectResponse
+    {
+        $data = $request->validated();
+        $subject->update($data);
+        ActivityLogger::log('update', 'Mengubah mapel: '.$data['name'], $subject);
+
+        return redirect()->route('admin.subjects.index')->with('success', 'Mapel berhasil diperbarui');
+    }
+
+    /**
+     * Web (admin): hapus mapel.
+     * Dilarang menghapus mapel yang masih dipetakan ke guru.
+     */
+    public function webDestroy(Subject $subject): RedirectResponse
+    {
+        if ($subject->teacherSubjects()->count() > 0) {
+            return back()->withErrors(['Mapel masih memiliki pengajar']);
+        }
+
+        $name = $subject->name;
+        $subject->delete();
+        ActivityLogger::log('delete', 'Menghapus mapel: '.$name);
+
+        return redirect()->route('admin.subjects.index')->with('success', 'Mapel berhasil dihapus');
     }
 }

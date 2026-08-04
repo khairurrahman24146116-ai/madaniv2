@@ -12,19 +12,18 @@ use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\ScoreController;
 use App\Http\Controllers\SPPController;
 use App\Http\Controllers\StudentImportExportController;
+use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\TeacherAttendanceController;
 use App\Http\Requests\MoveStudentRequest;
 use App\Http\Requests\ResetUserPasswordRequest;
 use App\Http\Requests\StoreScheduleRequest;
 use App\Http\Requests\StoreScoreComponentRequest;
 use App\Http\Requests\StoreStudentRequest;
-use App\Http\Requests\StoreSubjectRequest;
 use App\Http\Requests\StoreTeacherSubjectRequest;
 use App\Http\Requests\UpdateProfileRequest;
 use App\Http\Requests\UpdateScheduleRequest;
 use App\Http\Requests\UpdateScoreComponentRequest;
 use App\Http\Requests\UpdateStudentRequest;
-use App\Http\Requests\UpdateSubjectRequest;
 use App\Http\Requests\UpdateTeacherSubjectRequest;
 use App\Models\ActivityLog;
 use App\Models\Attendance;
@@ -384,42 +383,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/app/admin/classrooms/{classroom}', [ClassroomController::class, 'webDestroy'])->name('admin.classrooms.destroy');
 
         // Subjects
-        Route::get('/app/admin/subjects', function () {
-            $subjects = Subject::withCount('teacherSubjects')->orderBy('name')->paginate(50);
-
-            return view('admin.subjects.index', compact('subjects'));
-        })->name('admin.subjects.index');
-
-        Route::get('/app/admin/subjects/create', fn () => view('admin.subjects.create'))->name('admin.subjects.create');
-
-        Route::post('/app/admin/subjects', function (StoreSubjectRequest $req) {
-            $data = $req->validated();
-            Subject::create($data);
-            ActivityLogger::log('create', 'Menambahkan mapel: '.$data['name'].' ('.$data['code'].')');
-
-            return redirect()->route('admin.subjects.index')->with('success', 'Mapel berhasil ditambahkan');
-        })->name('admin.subjects.store');
-
-        Route::get('/app/admin/subjects/{subject}/edit', fn (Subject $subject) => view('admin.subjects.edit', compact('subject')))->name('admin.subjects.edit');
-
-        Route::put('/app/admin/subjects/{subject}', function (UpdateSubjectRequest $req, Subject $subject) {
-            $data = $req->validated();
-            $subject->update($data);
-            ActivityLogger::log('update', 'Mengubah mapel: '.$data['name'], $subject);
-
-            return redirect()->route('admin.subjects.index')->with('success', 'Mapel berhasil diperbarui');
-        })->name('admin.subjects.update');
-
-        Route::delete('/app/admin/subjects/{subject}', function (Subject $subject) {
-            if ($subject->teacherSubjects()->count() > 0) {
-                return back()->withErrors(['Mapel masih memiliki pengajar']);
-            }
-            $name = $subject->name;
-            $subject->delete();
-            ActivityLogger::log('delete', 'Menghapus mapel: '.$name);
-
-            return redirect()->route('admin.subjects.index')->with('success', 'Mapel berhasil dihapus');
-        })->name('admin.subjects.destroy');
+        Route::get('/app/admin/subjects', [SubjectController::class, 'webIndex'])->name('admin.subjects.index');
+        Route::get('/app/admin/subjects/create', [SubjectController::class, 'webCreate'])->name('admin.subjects.create');
+        Route::post('/app/admin/subjects', [SubjectController::class, 'webStore'])->name('admin.subjects.store');
+        Route::get('/app/admin/subjects/{subject}/edit', [SubjectController::class, 'webEdit'])->name('admin.subjects.edit');
+        Route::put('/app/admin/subjects/{subject}', [SubjectController::class, 'webUpdate'])->name('admin.subjects.update');
+        Route::delete('/app/admin/subjects/{subject}', [SubjectController::class, 'webDestroy'])->name('admin.subjects.destroy');
 
         // Students
         Route::get('/app/admin/students', function (Request $req) {
