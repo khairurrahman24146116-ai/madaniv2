@@ -89,4 +89,37 @@ class StudentIdorTest extends TestCase
         $this->getJson('/students/'.$student->id)
             ->assertOk();
     }
+
+    public function test_wali_cannot_list_students_of_classroom_other_than_own_child(): void
+    {
+        $wali = User::factory()->create(['role' => 'wali_murid']);
+        $own = Classroom::factory()->create();
+        $other = Classroom::factory()->create();
+        Student::factory()->create(['user_id' => $wali->id, 'classroom_id' => $own->id]);
+        Student::factory()->create(['classroom_id' => $other->id]);
+
+        Sanctum::actingAs($wali);
+
+        $this->getJson('/classrooms/'.$other->id.'/students')
+            ->assertForbidden();
+
+        $this->getJson('/classrooms/'.$own->id.'/students')
+            ->assertOk();
+    }
+
+    public function test_guru_cannot_list_students_of_class_not_taught(): void
+    {
+        $guru = User::factory()->create(['role' => 'guru']);
+        $taught = Classroom::factory()->create();
+        $other = Classroom::factory()->create();
+        TeacherSubject::factory()->create(['user_id' => $guru->id, 'classroom_id' => $taught->id]);
+
+        Sanctum::actingAs($guru);
+
+        $this->getJson('/classrooms/'.$other->id.'/students')
+            ->assertForbidden();
+
+        $this->getJson('/classrooms/'.$taught->id.'/students')
+            ->assertOk();
+    }
 }

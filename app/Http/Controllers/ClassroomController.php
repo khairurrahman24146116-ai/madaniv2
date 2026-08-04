@@ -28,6 +28,16 @@ class ClassroomController extends Controller
     {
         $query = Classroom::withCount('students');
 
+        // RBAC: guru hanya melihat kelas yang dia ajar; wali hanya melihat kelas anaknya.
+        $user = $request->user();
+        if ($user->isGuru()) {
+            $classroomIds = $user->teacherSubjects()->pluck('classroom_id')->unique();
+            $query->whereIn('id', $classroomIds);
+        } elseif ($user->isWaliMurid()) {
+            $classroomIds = $user->students()->pluck('classroom_id')->unique();
+            $query->whereIn('id', $classroomIds);
+        }
+
         // Filter berdasarkan tingkat kelas
         if ($request->has('grade')) {
             $query->where('grade', $request->grade);
@@ -44,6 +54,27 @@ class ClassroomController extends Controller
             'success' => true,
             'data' => $classrooms,
         ]);
+    }
+
+    private function canAccessClassroom(Request $request, Classroom $classroom): bool
+    {
+        $user = $request->user();
+
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        if ($user->isGuru()) {
+            return $user->teacherSubjects()
+                ->where('classroom_id', $classroom->id)
+                ->exists();
+        }
+
+        if ($user->isWaliMurid()) {
+            return $user->students()->where('classroom_id', $classroom->id)->exists();
+        }
+
+        return false;
     }
 
     /**
@@ -70,8 +101,15 @@ class ClassroomController extends Controller
     /**
      * Menampilkan detail kelas (siswa, guru, mata pelajaran).
      */
-    public function show(Classroom $classroom): JsonResponse
+    public function show(Request $request, Classroom $classroom): JsonResponse
     {
+        if (! $this->canAccessClassroom($request, $classroom)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Forbidden: Anda tidak berhak mengakses kelas ini.',
+            ], 403);
+        }
+
         $classroom->load(['students', 'teacherSubjects.subject', 'teacherSubjects.user']);
 
         return response()->json([
@@ -126,8 +164,15 @@ class ClassroomController extends Controller
      * Menampilkan daftar siswa aktif di kelas tertentu.
      * Berguna untuk absensi atau melihat anggota kelas.
      */
-    public function getActiveStudents(Classroom $classroom): JsonResponse
+    public function getActiveStudents(Request $request, Classroom $classroom): JsonResponse
     {
+        if (! $this->canAccessClassroom($request, $classroom)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Forbidden: Anda tidak berhak mengakses siswa di kelas ini.',
+            ], 403);
+        }
+
         $students = $classroom->activeStudents()->with('user')->get();
 
         return response()->json([
