@@ -203,6 +203,9 @@ Route::middleware(['auth:sanctum', 'password.changed'])->group(function () {
         Route::post('/app/teacher-attendances/check-out', [TeacherAttendanceController::class, 'checkOut'])->name('teacher.attendances.checkout');
         Route::post('/app/teacher-attendances', [TeacherAttendanceController::class, 'store'])->name('teacher.attendances.store');
 
+        // Simpan nilai dari halaman web (session-aware, bukan API bearer).
+        Route::post('/app/scores/batch', [ScoreController::class, 'batchStore'])->name('scores.batch.web');
+
         Route::get('/app/teacher-attendances', function () {
             $attendances = TeacherAttendance::with('user', 'schedule.teacherSubject.subject')
                 ->where('user_id', auth()->id())

@@ -56,6 +56,24 @@ class ScoreTest extends TestCase
         $response->assertStatus(201)->assertJsonPath('success', true);
     }
 
+    public function test_guru_can_save_score_via_web_route_with_session(): void
+    {
+        $guru = User::where('email', 'ahmad@madani.id')->firstOrFail();
+        Sanctum::actingAs($guru);
+
+        $response = $this->post('/app/scores/batch', [
+            'subject_id' => 1,
+            'component_code' => 'tugas',
+            'semester' => 'ganjil',
+            'academic_year' => '2025/2026',
+            'scores' => [
+                ['student_id' => 1, 'value' => 85],
+            ],
+        ]);
+
+        $response->assertStatus(201)->assertJsonPath('success', true);
+    }
+
     public function test_guru_cannot_input_scores_for_same_subject_in_another_teachers_class(): void
     {
         $guruLain = User::where('email', 'fatimah@madani.id')->firstOrFail();
