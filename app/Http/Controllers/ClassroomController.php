@@ -2,9 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreClassroomRequest;
+use App\Http\Requests\UpdateClassroomRequest;
 use App\Models\Classroom;
+use App\Models\User;
+use App\Services\ActivityLogger;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 /**
  * Controller Classroom — CRUD data kelas.
@@ -128,5 +134,76 @@ class ClassroomController extends Controller
             'success' => true,
             'data' => $students,
         ]);
+    }
+
+    /**
+     * Web (admin): daftar kelas.
+     */
+    public function webIndex(): View
+    {
+        $classrooms = Classroom::with('waliKelas')->withCount('students')->orderBy('grade')->orderBy('name')->paginate(50);
+
+        return view('admin.classrooms.index', compact('classrooms'));
+    }
+
+    /**
+     * Web (admin): form tambah kelas.
+     */
+    public function webCreate(): View
+    {
+        $gurus = User::where('role', 'guru')->orderBy('name')->get();
+
+        return view('admin.classrooms.create', compact('gurus'));
+    }
+
+    /**
+     * Web (admin): simpan kelas baru.
+     */
+    public function webStore(StoreClassroomRequest $request): RedirectResponse
+    {
+        $data = $request->validated();
+        Classroom::create($data);
+        ActivityLogger::log('create', 'Menambahkan kelas: '.$data['name']);
+
+        return redirect()->route('admin.classrooms.index')->with('success', 'Kelas berhasil ditambahkan');
+    }
+
+    /**
+     * Web (admin): form edit kelas.
+     */
+    public function webEdit(Classroom $classroom): View
+    {
+        $gurus = User::where('role', 'guru')->orderBy('name')->get();
+
+        return view('admin.classrooms.edit', compact('classroom', 'gurus'));
+    }
+
+    /**
+     * Web (admin): perbarui kelas.
+     */
+    public function webUpdate(UpdateClassroomRequest $request, Classroom $classroom): RedirectResponse
+    {
+        $data = $request->validated();
+        $classroom->update($data);
+        ActivityLogger::log('update', 'Mengubah kelas: '.$data['name'], $classroom);
+
+        return redirect()->route('admin.classrooms.index')->with('success', 'Kelas berhasil diperbarui');
+    }
+
+    /**
+     * Web (admin): hapus kelas.
+     * Dilarang menghapus kelas yang masih memiliki siswa.
+     */
+    public function webDestroy(Classroom $classroom): RedirectResponse
+    {
+        if ($classroom->students()->count() > 0) {
+            return back()->withErrors(['Kelas masih memiliki siswa']);
+        }
+
+        $name = $classroom->name;
+        $classroom->delete();
+        ActivityLogger::log('delete', 'Menghapus kelas: '.$name);
+
+        return redirect()->route('admin.classrooms.index')->with('success', 'Kelas berhasil dihapus');
     }
 }

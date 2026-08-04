@@ -3,6 +3,7 @@
 use App\Http\Controllers\ActiveLetterController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ClassroomController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\LetterController;
 use App\Http\Controllers\MeetingController;
@@ -14,13 +15,11 @@ use App\Http\Controllers\StudentImportExportController;
 use App\Http\Controllers\TeacherAttendanceController;
 use App\Http\Requests\MoveStudentRequest;
 use App\Http\Requests\ResetUserPasswordRequest;
-use App\Http\Requests\StoreClassroomRequest;
 use App\Http\Requests\StoreScheduleRequest;
 use App\Http\Requests\StoreScoreComponentRequest;
 use App\Http\Requests\StoreStudentRequest;
 use App\Http\Requests\StoreSubjectRequest;
 use App\Http\Requests\StoreTeacherSubjectRequest;
-use App\Http\Requests\UpdateClassroomRequest;
 use App\Http\Requests\UpdateProfileRequest;
 use App\Http\Requests\UpdateScheduleRequest;
 use App\Http\Requests\UpdateScoreComponentRequest;
@@ -377,50 +376,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/app/admin', fn () => view('admin.dashboard'))->name('admin.dashboard');
 
         // Classrooms
-        Route::get('/app/admin/classrooms', function () {
-            $classrooms = Classroom::with('waliKelas')->withCount('students')->orderBy('grade')->orderBy('name')->paginate(50);
-
-            return view('admin.classrooms.index', compact('classrooms'));
-        })->name('admin.classrooms.index');
-
-        Route::get('/app/admin/classrooms/create', function () {
-            $gurus = User::where('role', 'guru')->orderBy('name')->get();
-
-            return view('admin.classrooms.create', compact('gurus'));
-        })->name('admin.classrooms.create');
-
-        Route::post('/app/admin/classrooms', function (StoreClassroomRequest $req) {
-            $data = $req->validated();
-            Classroom::create($data);
-            ActivityLogger::log('create', 'Menambahkan kelas: '.$data['name']);
-
-            return redirect()->route('admin.classrooms.index')->with('success', 'Kelas berhasil ditambahkan');
-        })->name('admin.classrooms.store');
-
-        Route::get('/app/admin/classrooms/{classroom}/edit', function (Classroom $classroom) {
-            $gurus = User::where('role', 'guru')->orderBy('name')->get();
-
-            return view('admin.classrooms.edit', compact('classroom', 'gurus'));
-        })->name('admin.classrooms.edit');
-
-        Route::put('/app/admin/classrooms/{classroom}', function (UpdateClassroomRequest $req, Classroom $classroom) {
-            $data = $req->validated();
-            $classroom->update($data);
-            ActivityLogger::log('update', 'Mengubah kelas: '.$data['name'], $classroom);
-
-            return redirect()->route('admin.classrooms.index')->with('success', 'Kelas berhasil diperbarui');
-        })->name('admin.classrooms.update');
-
-        Route::delete('/app/admin/classrooms/{classroom}', function (Classroom $classroom) {
-            if ($classroom->students()->count() > 0) {
-                return back()->withErrors(['Kelas masih memiliki siswa']);
-            }
-            $name = $classroom->name;
-            $classroom->delete();
-            ActivityLogger::log('delete', 'Menghapus kelas: '.$name);
-
-            return redirect()->route('admin.classrooms.index')->with('success', 'Kelas berhasil dihapus');
-        })->name('admin.classrooms.destroy');
+        Route::get('/app/admin/classrooms', [ClassroomController::class, 'webIndex'])->name('admin.classrooms.index');
+        Route::get('/app/admin/classrooms/create', [ClassroomController::class, 'webCreate'])->name('admin.classrooms.create');
+        Route::post('/app/admin/classrooms', [ClassroomController::class, 'webStore'])->name('admin.classrooms.store');
+        Route::get('/app/admin/classrooms/{classroom}/edit', [ClassroomController::class, 'webEdit'])->name('admin.classrooms.edit');
+        Route::put('/app/admin/classrooms/{classroom}', [ClassroomController::class, 'webUpdate'])->name('admin.classrooms.update');
+        Route::delete('/app/admin/classrooms/{classroom}', [ClassroomController::class, 'webDestroy'])->name('admin.classrooms.destroy');
 
         // Subjects
         Route::get('/app/admin/subjects', function () {
