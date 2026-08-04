@@ -29,7 +29,7 @@
                     <td class="px-lg py-md text-body-md text-on-surface font-semibold">{{ $m->user->name }}</td>
                     <td class="px-lg py-md text-body-md text-on-surface-variant">{{ $m->subject->name }} ({{ $m->subject->code }})</td>
                     <td class="px-lg py-md text-body-md text-on-surface-variant">{{ $m->classroom->name }}</td>
-                    <td class="px-lg py-md text-center text-body-md text-on-surface-variant">{{ $m->schedules->count() }}</td>
+                    <td class="px-lg py-md text-center text-body-md text-on-surface-variant">{{ $m->schedules_count }}</td>
                     <td class="px-lg py-md text-right">
                         <a href="{{ route('admin.teacher-subjects.edit', $m) }}" class="inline-flex items-center gap-1 text-label-md text-primary hover:text-primary/80">
                             <span class="material-symbols-outlined text-[18px]">edit</span> Edit
@@ -48,5 +48,8 @@
             </tbody>
         </table>
     </div>
+    @if(method_exists($mappings, 'links'))
+    <div class="p-lg border-t border-outline-variant">{{ $mappings->links() }}</div>
+    @endif
 </x-card>
 @endsection

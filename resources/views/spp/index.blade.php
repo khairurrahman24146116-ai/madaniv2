@@ -106,6 +106,9 @@
             </tbody>
         </table>
     </div>
+    @if($students->hasPages())
+    <div class="p-lg border-t border-outline-variant">{{ $students->links() }}</div>
+    @endif
 </x-card>
 
 {{-- Pay Modal --}}

@@ -11,7 +11,8 @@ class ContactController extends Controller
 {
     public function waliIndex(Request $request)
     {
-        $messages = ContactMessage::where('user_id', $request->user()->id)
+        $messages = ContactMessage::with('user')
+            ->where('user_id', $request->user()->id)
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
@@ -62,6 +63,8 @@ class ContactController extends Controller
         if (! $contactMessage->is_read) {
             $contactMessage->update(['is_read' => true]);
         }
+
+        $contactMessage->load('user');
 
         return view('contact.admin-show', compact('contactMessage'));
     }

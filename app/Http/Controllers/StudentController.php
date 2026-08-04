@@ -54,7 +54,7 @@ class StudentController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('nis', 'like', "%{$search}%");
+                    ->orWhere('nis', 'like', "{$search}%");
             });
         }
 
@@ -206,9 +206,14 @@ class StudentController extends Controller
         $skipped = 0;
         $errors = [];
 
+        // Ambil daftar NIS yang sudah terdaftar dalam 1 query (hindari query per baris).
+        $existingNis = Student::whereIn('nis', array_column($validated['students'], 'nis'))
+            ->pluck('nis')
+            ->flip();
+
         foreach ($validated['students'] as $index => $data) {
             // Skip jika NIS sudah ada (mencegah duplikasi)
-            if (Student::where('nis', $data['nis'])->exists()) {
+            if ($existingNis->has($data['nis'])) {
                 $skipped++;
 
                 continue;
@@ -232,6 +237,7 @@ class StudentController extends Controller
 
                     $imported++;
                 });
+                $existingNis->put($data['nis'], true);
             } catch (\Throwable $e) {
                 $errors[] = 'Baris ke-'.($index + 1)." ({$data['nis']}): gagal disimpan ($e->getMessage())";
             }

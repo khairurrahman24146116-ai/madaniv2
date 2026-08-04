@@ -26,11 +26,11 @@
         </div>
         <div class="grid grid-cols-2 gap-md mb-md">
             <div class="bg-surface-container-high rounded-xl p-md text-center">
-                <p class="text-headline-sm font-bold text-primary">{{ $student->attendances()->where('status', 'H')->count() }}</p>
+                <p class="text-headline-sm font-bold text-primary">{{ $student->hadir_count }}</p>
                 <p class="text-caption text-on-surface-variant">Hadir</p>
             </div>
             <div class="bg-surface-container-high rounded-xl p-md text-center">
-                <p class="text-headline-sm font-bold text-error">{{ $student->attendances()->whereNot('status', 'H')->count() }}</p>
+                <p class="text-headline-sm font-bold text-error">{{ $student->tidak_hadir_count }}</p>
                 <p class="text-caption text-on-surface-variant">Tidak Hadir</p>
             </div>
         </div>

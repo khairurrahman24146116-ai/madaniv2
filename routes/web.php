@@ -124,7 +124,11 @@ Route::middleware(['auth:sanctum', 'password.changed'])->group(function () {
     // ===== Wali Murid: Dashboard & Rapor (tidak di-nesting di dalam admin,guru) =====
     Route::middleware('role:wali_murid')->group(function () {
         Route::get('/app/wali-murid', function () {
-            $students = Student::with('classroom')->where('user_id', auth()->id())->get();
+            $students = Student::with([
+                'classroom',
+                'attendances as hadir_count' => fn ($q) => $q->where('status', 'H'),
+                'attendances as tidak_hadir_count' => fn ($q) => $q->whereNot('status', 'H'),
+            ])->where('user_id', auth()->id())->get();
 
             return view('wali-murid.dashboard', compact('students'));
         })->name('wali-murid.dashboard');
@@ -145,15 +149,17 @@ Route::middleware(['auth:sanctum', 'password.changed'])->group(function () {
                 abort(403);
             }
 
+            $student->load('classroom');
+
             $semester = request('semester', 'ganjil');
             $academicYear = request('academic_year', '2025/2026');
             $raporService = app(RaporService::class);
+            $subjects = Subject::get();
+            $grades = $raporService->calculateGrades([$student->id], $subjects->pluck('id')->all(), $semester, $academicYear);
             $rapor = collect();
 
-            foreach (Subject::with('scoreComponents')->get() as $subject) {
-                $result = $raporService->calculateSubjectGrade(
-                    $student->id, $subject->id, $semester, $academicYear
-                );
+            foreach ($subjects as $subject) {
+                $result = $grades[$student->id][$subject->id] ?? null;
 
                 if (! $result || $result['final_grade'] === null) {
                     continue;
@@ -283,10 +289,11 @@ Route::middleware(['auth:sanctum', 'password.changed'])->group(function () {
             $grades = collect();
             if ($student) {
                 $raporService = app(RaporService::class);
-                foreach (Subject::with('scoreComponents')->get() as $subject) {
-                    $result = $raporService->calculateSubjectGrade(
-                        $student->id, $subject->id, $semester, $academicYear
-                    );
+                $subjects = Subject::get();
+                $bulkGrades = $raporService->calculateGrades([$student->id], $subjects->pluck('id')->all(), $semester, $academicYear);
+
+                foreach ($subjects as $subject) {
+                    $result = $bulkGrades[$student->id][$subject->id] ?? null;
 
                     if (! $result || $result['final_grade'] === null) {
                         continue;
@@ -371,7 +378,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Classrooms
         Route::get('/app/admin/classrooms', function () {
-            $classrooms = Classroom::with('waliKelas')->withCount('students')->orderBy('grade')->orderBy('name')->get();
+            $classrooms = Classroom::with('waliKelas')->withCount('students')->orderBy('grade')->orderBy('name')->paginate(50);
 
             return view('admin.classrooms.index', compact('classrooms'));
         })->name('admin.classrooms.index');
@@ -417,7 +424,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Subjects
         Route::get('/app/admin/subjects', function () {
-            $subjects = Subject::withCount('teacherSubjects')->orderBy('name')->get();
+            $subjects = Subject::withCount('teacherSubjects')->orderBy('name')->paginate(50);
 
             return view('admin.subjects.index', compact('subjects'));
         })->name('admin.subjects.index');
@@ -460,7 +467,7 @@ Route::middleware('auth:sanctum')->group(function () {
             if ($search = $req->get('search')) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('nis', 'like', "%{$search}%");
+                        ->orWhere('nis', 'like', "{$search}%");
                 });
             }
 
@@ -545,7 +552,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Teacher-Subjects
         Route::get('/app/admin/teacher-subjects', function () {
-            $mappings = TeacherSubject::with('user', 'subject', 'classroom')->orderBy('classroom_id')->get();
+            $mappings = TeacherSubject::with('user', 'subject', 'classroom')->withCount('schedules')->orderBy('classroom_id')->paginate(50);
 
             return view('admin.teacher-subjects.index', compact('mappings'));
         })->name('admin.teacher-subjects.index');
@@ -636,7 +643,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // ===== Score Components =====
         Route::get('/app/admin/score-components', function () {
-            $components = ScoreComponent::with('subject')->orderBy('subject_id')->get();
+            $components = ScoreComponent::with('subject')->orderBy('subject_id')->paginate(50);
 
             return view('admin.score-components.index', compact('components'));
         })->name('admin.score-components.index');
@@ -691,7 +698,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
             $gurus = User::where('role', 'guru')->orderBy('name')->get();
 
-            $todayAttendances = TeacherAttendance::where('date', $today)->get();
+            $todayAttendances = TeacherAttendance::where('date', $today)->select('status')->get();
             $totalGuru = $gurus->count();
             $hadir = $todayAttendances->where('status', 'H')->count();
             $sakit = $todayAttendances->where('status', 'S')->count();
@@ -766,7 +773,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // ===== Activity Logs =====
         Route::get('/app/admin/activity-logs', function () {
-            $query = ActivityLog::with('user')->latest();
+            $query = ActivityLog::with('user')
+                ->select(['id', 'user_id', 'action', 'description', 'ip_address', 'created_at'])
+                ->latest();
 
             if ($action = request('action')) {
                 $query->where('action', $action);

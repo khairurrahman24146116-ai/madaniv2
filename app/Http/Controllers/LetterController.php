@@ -80,6 +80,8 @@ class LetterController extends Controller
     {
         $this->authorize('view', $letter);
 
+        $letter->load('user');
+
         return view('letters.show', compact('letter'));
     }
 

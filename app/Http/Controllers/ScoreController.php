@@ -349,10 +349,17 @@ class ScoreController extends Controller
             ->orderBy('name')
             ->get();
 
-        $results = $students->map(function ($student) use ($request) {
-            $result = app(RaporService::class)->calculateSubjectGrade(
-                $student->id, $request->subject_id, $request->semester, $request->academic_year
-            );
+        $subjectId = (int) $request->subject_id;
+
+        $grades = app(RaporService::class)->calculateGrades(
+            $students->pluck('id')->all(),
+            [$subjectId],
+            $request->semester,
+            $request->academic_year
+        );
+
+        $results = $students->map(function ($student) use ($grades, $subjectId) {
+            $result = $grades[$student->id][$subjectId] ?? null;
 
             if (! $result) {
                 return [
@@ -516,7 +523,8 @@ class ScoreController extends Controller
      */
     public function exportCsv(Request $request): StreamedResponse
     {
-        $query = Score::with(['student', 'subject', 'teacher']);
+        $query = Score::with(['student.classroom', 'subject', 'teacher'])
+            ->select(['student_id', 'subject_id', 'component_code', 'value', 'semester', 'academic_year', 'teacher_id', 'created_at']);
 
         $subjectIds = $this->getTeacherSubjectIds($request);
         if ($subjectIds !== null) {

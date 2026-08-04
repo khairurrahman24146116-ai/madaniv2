@@ -52,5 +52,8 @@
             </tbody>
         </table>
     </div>
+    @if(method_exists($classrooms, 'links'))
+    <div class="p-lg border-t border-outline-variant">{{ $classrooms->links() }}</div>
+    @endif
 </x-card>
 @endsection

@@ -16,16 +16,23 @@ class SPPController extends Controller
         $month = (int) ($request->query('month', now()->month));
         $year = (int) ($request->query('year', now()->year));
 
-        $students = Student::with(['classroom', 'studentFees' => function ($q) use ($month, $year) {
-            $q->where('month', $month)->where('year', $year);
-        }])
+        $studentBase = Student::query()
             ->where('is_active', true)
-            ->when($user->isWaliMurid(), fn ($q) => $q->where('user_id', $user->id))
-            ->orderBy('name')
-            ->get();
+            ->when($user->isWaliMurid(), fn ($q) => $q->where('user_id', $user->id));
 
-        $totalLunas = $students->filter(fn ($s) => $s->studentFees->first()?->is_paid)->count();
-        $totalBelum = $students->count() - $totalLunas;
+        $totalStudents = (clone $studentBase)->count();
+        $totalLunas = (clone $studentBase)
+            ->whereHas('studentFees', fn ($q) => $q->where('month', $month)->where('year', $year)->where('is_paid', true))
+            ->count();
+        $totalBelum = $totalStudents - $totalLunas;
+
+        $students = (clone $studentBase)
+            ->with(['classroom', 'studentFees' => function ($q) use ($month, $year) {
+                $q->where('month', $month)->where('year', $year);
+            }])
+            ->orderBy('name')
+            ->paginate(50)
+            ->withQueryString();
 
         $months = [
             1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',

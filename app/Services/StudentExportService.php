@@ -22,7 +22,7 @@ class StudentExportService
      */
     public function export(?int $classroomId): StreamedResponse
     {
-        $query = Student::with('classroom')->orderBy('name');
+        $query = Student::with('classroom')->select(['id', 'nis', 'name', 'gender', 'classroom_id'])->orderBy('name');
 
         if ($classroomId) {
             $query->where('classroom_id', $classroomId);

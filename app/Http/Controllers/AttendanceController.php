@@ -322,7 +322,7 @@ class AttendanceController extends Controller
             'student.user',
             'schedule.teacherSubject.subject',
             'schedule.teacherSubject.classroom',
-        ]);
+        ])->select(['student_id', 'schedule_id', 'date', 'status', 'notes', 'submitted_at']);
 
         $scheduleIds = $this->getTeacherScheduleIds($request);
         if ($scheduleIds !== null) {
