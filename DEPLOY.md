@@ -7,6 +7,7 @@ Panduan singkat men-deploy **Madani Al-Aziziyah** ke shared hosting (cPanel/Dire
 - PHP >= 8.2 dengan ekstensi: `pdo_mysql`, `mbstring`, `openssl`, `tokenizer`, `xml`, `ctype`, `fileinfo`, `gd` (untuk PDF rapor)
 - MySQL/MariaDB
 - Akses SSH lebih baik, tapi tanpa SSH juga bisa (upload zip)
+- **Agar "Lupa Password" terkirim**, siapkan akun SMTP (mis. Gmail + App Password) lalu isi `MAIL_*` di `.env`. Jika tidak diisi, perintah tetap berjalan tapi email ditulis ke `storage/logs` (tidak terkirim).
 
 ## 2. Upload file
 
@@ -59,7 +60,12 @@ QUEUE_CONNECTION=database
 CACHE_STORE=database
 FILESYSTEM_DISK=local
 
-MAIL_MAILER=log
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=<email-pengirim-gmail>
+MAIL_PASSWORD=<password-aplikasi-gmail>
+MAIL_ENCRYPTION=tls
 MAIL_FROM_ADDRESS="no-reply@<domain-anda>"
 MAIL_FROM_NAME="${APP_NAME}"
 

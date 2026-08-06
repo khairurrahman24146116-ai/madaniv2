@@ -192,7 +192,7 @@
         saveButton.disabled = true;
         saveButton.innerHTML = '<span class="material-symbols-outlined animate-spin">refresh</span> Menyimpan...';
         try {
-            const response = await fetch('{{ url('/scores/batch') }}', {
+            const response = await fetch('{{ route('scores.batch.web') }}', {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',
