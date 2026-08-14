@@ -1,83 +1,77 @@
-<!DOCTYPE html>
-<html class="light" lang="id">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Madani Al-Aziziyah - Lupa Password</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
-    @vite('resources/css/app.css')
-    @vite('resources/js/app.js')
-</head>
-<body class="bg-background text-on-surface font-sans antialiased">
-<div class="min-h-screen flex flex-col md:flex-row">
-    <div class="hidden md:flex md:w-1/2 bg-[#004ac6] min-h-screen flex-col items-center justify-center p-12 relative">
-        <div class="absolute inset-0 opacity-[0.08]">
-            <div class="absolute top-10 left-10 w-80 h-80 bg-white rounded-full blur-3xl"></div>
-            <div class="absolute bottom-10 right-10 w-96 h-96 bg-white rounded-full blur-3xl"></div>
+@extends('layouts.guest')
+
+@section('content')
+<div class="bg-surface-container-lowest rounded-xl shadow-lg border border-surface-container-high overflow-hidden">
+    {{-- Header Section --}}
+    <div class="bg-primary-container p-8 flex flex-col items-center justify-center text-center rounded-t-xl">
+        <div class="w-16 h-16 bg-surface-container-lowest rounded-full flex items-center justify-center mb-4 shadow-sm">
+            <span class="material-symbols-outlined text-[32px] text-primary" style="font-variation-settings: 'FILL' 1;">lock_reset</span>
         </div>
-        <div class="relative z-10 text-center max-w-[360px]">
-            <div class="w-20 h-20 bg-white/15 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-8 border border-white/20">
-                <span class="material-symbols-outlined text-[44px] text-white">school</span>
-            </div>
-            <h1 class="text-[36px] font-bold text-white leading-tight tracking-tight mb-4">Madani Al-Aziziyah</h1>
-            <p class="text-[16px] text-white/70 leading-relaxed">Sistem Informasi Manajemen SMA Sore Dayah Madani Al-Aziziyah</p>
-        </div>
+        <h1 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg text-on-primary-container font-bold">
+            Lupa Password
+        </h1>
+        <p class="font-title-lg text-title-lg text-primary-fixed-dim opacity-90 mt-1">
+            Masukkan email untuk menerima tautan reset
+        </p>
     </div>
-    <div class="w-full md:w-1/2 min-h-screen flex items-center justify-center px-4 py-8">
-        <div class="w-full max-w-[400px]">
-            <div class="md:hidden text-center mb-8">
-                <div class="w-14 h-14 bg-[#004ac6] text-white rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <span class="material-symbols-outlined text-[28px]">school</span>
-                </div>
-                <h1 class="text-[22px] font-bold text-on-surface">Madani Al-Aziziyah</h1>
-            </div>
-            <div class="mb-8">
-                <h2 class="text-[24px] font-semibold text-on-surface tracking-tight">Lupa Password</h2>
-                <p class="text-[14px] text-on-surface-variant mt-1">Masukkan email Anda untuk menerima tautan reset password</p>
-            </div>
-            @if (session('status'))
-            <div class="mb-6 p-4 bg-green-50 text-green-800 rounded-xl text-[14px] flex items-start gap-3 border border-green-200">
-                <span class="material-symbols-outlined text-[20px] mt-0.5 shrink-0">check_circle</span>
+
+    {{-- Form Section --}}
+    <div class="p-8">
+        @if (session('status'))
+            <div class="mb-6 p-4 bg-tertiary-container text-on-tertiary-container rounded-lg text-body-md flex items-start gap-3 border border-tertiary/30" role="status">
+                <span class="material-symbols-outlined text-[20px] shrink-0 mt-0.5" style="font-variation-settings: 'FILL' 1;">check_circle</span>
                 <div>{{ session('status') }}</div>
             </div>
-            @endif
-            @if($errors->any())
-            <div class="mb-6 p-4 bg-red-50 text-red-800 rounded-xl text-[14px] flex items-start gap-3 border border-red-200">
-                <span class="material-symbols-outlined text-[20px] mt-0.5 shrink-0">error</span>
+        @endif
+
+        @if($errors->any())
+            <div class="mb-6 p-4 bg-error-container text-on-error-container rounded-lg text-body-md flex items-start gap-3 border border-error/30" role="alert">
+                <span class="material-symbols-outlined text-[20px] shrink-0 mt-0.5">error</span>
                 <div>
-                    <ul class="list-disc list-inside space-y-0.5">
+                    <ul class="list-disc list-inside space-y-1">
                         @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
+                            <li>{{ $error }}</li>
                         @endforeach
                     </ul>
                 </div>
             </div>
-            @endif
-            <div class="bg-white border border-[#c3c6d7] rounded-xl p-8 shadow-sm">
-                <form method="POST" action="{{ route('password.email') }}" class="space-y-5">
-                    @csrf
-                    <div>
-                        <label for="email" class="block text-[12px] font-semibold text-[#434655] uppercase tracking-wider mb-2">Email</label>
-                        <input type="email" name="email" id="email" value="{{ old('email') }}" required
-                            class="w-full rounded-lg border border-[#c3c6d7] bg-white text-[#191c1e] px-4 py-3 text-[14px] outline-none focus:border-[#2563eb] focus:ring-2 focus:ring-[#2563eb]/20 transition-colors"
-                            autocomplete="email" placeholder="admin@madani.id">
-                    </div>
-                    <button type="submit"
-                        class="w-full bg-[#2563eb] text-white font-semibold text-[16px] py-3 rounded-lg flex items-center justify-center gap-2 hover:bg-[#2563eb]/90 active:scale-[0.98] transition-all duration-150 shadow-sm">
-                        <span class="material-symbols-outlined text-[20px]">send</span>
-                        Kirim Tautan Reset
-                    </button>
-                </form>
-                <div class="mt-6 text-center">
-                    <a href="{{ route('login') }}" class="text-[14px] text-[#2563eb] hover:underline inline-flex items-center gap-1">
-                        <span class="material-symbols-outlined text-[16px]">arrow_back</span>
-                        Kembali ke Login
-                    </a>
+        @endif
+
+        <form action="{{ route('password.email') }}" method="POST" class="space-y-6">
+            @csrf
+
+            <div class="space-y-2">
+                <label class="block font-label-mono text-label-mono text-on-surface-variant" for="email">
+                    Email
+                </label>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">
+                        mail
+                    </span>
+                    <input id="email" name="email" type="email" value="{{ old('email') }}" required autocomplete="email"
+                           placeholder="admin@madani.id"
+                           class="w-full pl-10 pr-4 py-3 bg-surface-variant border-0 border-b border-outline-variant focus:border-primary focus:ring-0 focus:outline-none rounded-t-lg transition-colors font-data-table text-data-table text-on-surface">
                 </div>
+                @error('email')
+                    <p class="font-label-mono text-label-mono text-error">{{ $message }}</p>
+                @enderror
             </div>
+
+            <button type="submit"
+                    class="w-full py-3 bg-primary text-on-primary font-title-lg text-title-lg rounded-lg shadow-sm hover:shadow-md hover:bg-primary/90 active:bg-primary/100 transition-all duration-200 flex items-center justify-center gap-2 mt-8">
+                <span>Kirim Tautan Reset</span>
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">
+                    send
+                </span>
+            </button>
+        </form>
+
+        <div class="mt-6 text-center">
+            <a href="{{ route('login') }}" class="font-label-mono text-label-mono text-primary hover:text-secondary transition-colors inline-flex items-center gap-1">
+                <span class="material-symbols-outlined text-[16px]">arrow_back</span>
+                Kembali ke Login
+            </a>
         </div>
     </div>
 </div>
-</body>
-</html>
+@endsection

@@ -9,7 +9,7 @@
         @csrf @method('PUT')
         <div class="space-y-5">
             <div>
-                <label class="block text-label-md text-on-surface-variant mb-xs">MATA PELAJARAN</label>
+                <label class="block text-label-md text-on-surface-variant mb-1">MATA PELAJARAN</label>
                 <select name="subject_id" required
                     class="w-full rounded-lg border border-outline-variant bg-surface-bright text-on-surface px-4 py-3 text-body-md outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors">
                     <option value="">Pilih mapel</option>
@@ -20,7 +20,7 @@
                 @error('subject_id')<p class="text-error text-caption mt-1">{{ $message }}</p>@enderror
             </div>
             <div>
-                <label class="block text-label-md text-on-surface-variant mb-xs">KOMPONEN</label>
+                <label class="block text-label-md text-on-surface-variant mb-1">KOMPONEN</label>
                 <select name="code" required
                     class="w-full rounded-lg border border-outline-variant bg-surface-bright text-on-surface px-4 py-3 text-body-md outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors">
                     <option value="">Pilih komponen</option>
@@ -33,13 +33,13 @@
             </div>
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-label-md text-on-surface-variant mb-xs">NAMA KOMPONEN</label>
+                    <label class="block text-label-md text-on-surface-variant mb-1">NAMA KOMPONEN</label>
                     <input type="text" name="name" value="{{ old('name', $scoreComponent->name) }}" required
                         class="w-full rounded-lg border border-outline-variant bg-surface-bright text-on-surface px-4 py-3 text-body-md outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors">
                     @error('name')<p class="text-error text-caption mt-1">{{ $message }}</p>@enderror
                 </div>
                 <div>
-                    <label class="block text-label-md text-on-surface-variant mb-xs">BOBOT (%)</label>
+                    <label class="block text-label-md text-on-surface-variant mb-1">BOBOT (%)</label>
                     <input type="number" name="weight" value="{{ old('weight', $scoreComponent->weight) }}" required step="0.01" min="0" max="100"
                         class="w-full rounded-lg border border-outline-variant bg-surface-bright text-on-surface px-4 py-3 text-body-md outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors">
                     @error('weight')<p class="text-error text-caption mt-1">{{ $message }}</p>@enderror
@@ -47,7 +47,7 @@
             </div>
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-label-md text-on-surface-variant mb-xs">SEMESTER</label>
+                    <label class="block text-label-md text-on-surface-variant mb-1">SEMESTER</label>
                     <select name="semester" required
                         class="w-full rounded-lg border border-outline-variant bg-surface-bright text-on-surface px-4 py-3 text-body-md outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors">
                         <option value="">Pilih semester</option>
@@ -57,13 +57,13 @@
                     @error('semester')<p class="text-error text-caption mt-1">{{ $message }}</p>@enderror
                 </div>
                 <div>
-                    <label class="block text-label-md text-on-surface-variant mb-xs">TAHUN AJARAN</label>
+                    <label class="block text-label-md text-on-surface-variant mb-1">TAHUN AJARAN</label>
                     <input type="text" name="academic_year" value="{{ old('academic_year', $scoreComponent->academic_year) }}" required
                         class="w-full rounded-lg border border-outline-variant bg-surface-bright text-on-surface px-4 py-3 text-body-md outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors">
                     @error('academic_year')<p class="text-error text-caption mt-1">{{ $message }}</p>@enderror
                 </div>
             </div>
-            <div class="flex gap-md pt-md border-t border-outline-variant">
+            <div class="flex gap-4 pt-4 border-t border-outline-variant">
                 <x-button variant="primary" type="submit" icon="save">Simpan</x-button>
                 <x-button variant="outline" href="{{ route('admin.score-components.index') }}">Batal</x-button>
             </div>

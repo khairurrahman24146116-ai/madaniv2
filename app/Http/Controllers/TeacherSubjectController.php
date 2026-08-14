@@ -2,10 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreTeacherSubjectRequest;
+use App\Http\Requests\UpdateTeacherSubjectRequest;
+use App\Models\Classroom;
+use App\Models\Subject;
 use App\Models\TeacherSubject;
 use App\Models\User;
+use App\Services\ActivityLogger;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 /**
  * Controller TeacherSubject — Mapping Guru-Mata Pelajaran-Kelas.
@@ -195,5 +202,74 @@ class TeacherSubjectController extends Controller
             'success' => true,
             'data' => $schedules,
         ]);
+    }
+
+    /**
+     * Web (admin): daftar mapping guru-mapel-kelas.
+     */
+    public function webIndex(): View
+    {
+        $mappings = TeacherSubject::with('user', 'subject', 'classroom')->withCount('schedules')->orderBy('classroom_id')->paginate(50);
+
+        return view('admin.teacher-subjects.index', compact('mappings'));
+    }
+
+    /**
+     * Web (admin): form tambah mapping.
+     */
+    public function webCreate(): View
+    {
+        $teachers = User::where('role', 'guru')->orderBy('name')->get();
+        $subjects = Subject::orderBy('name')->get();
+        $classrooms = Classroom::orderBy('grade')->orderBy('name')->get();
+
+        return view('admin.teacher-subjects.create', compact('teachers', 'subjects', 'classrooms'));
+    }
+
+    /**
+     * Web (admin): simpan mapping baru.
+     */
+    public function webStore(StoreTeacherSubjectRequest $request): RedirectResponse
+    {
+        $data = $request->validated();
+        TeacherSubject::firstOrCreate($data);
+        ActivityLogger::log('create', 'Menambahkan mapping guru-mapel-kelas');
+
+        return redirect()->route('admin.teacher-subjects.index')->with('success', 'Mapping berhasil ditambahkan');
+    }
+
+    /**
+     * Web (admin): form edit mapping.
+     */
+    public function webEdit(TeacherSubject $teacherSubject): View
+    {
+        $teachers = User::where('role', 'guru')->orderBy('name')->get();
+        $subjects = Subject::orderBy('name')->get();
+        $classrooms = Classroom::orderBy('grade')->orderBy('name')->get();
+
+        return view('admin.teacher-subjects.edit', compact('teacherSubject', 'teachers', 'subjects', 'classrooms'));
+    }
+
+    /**
+     * Web (admin): perbarui mapping.
+     */
+    public function webUpdate(UpdateTeacherSubjectRequest $request, TeacherSubject $teacherSubject): RedirectResponse
+    {
+        $data = $request->validated();
+        $teacherSubject->update($data);
+        ActivityLogger::log('update', 'Mengubah mapping guru-mapel-kelas', $teacherSubject);
+
+        return redirect()->route('admin.teacher-subjects.index')->with('success', 'Mapping berhasil diperbarui');
+    }
+
+    /**
+     * Web (admin): hapus mapping.
+     */
+    public function webDestroy(TeacherSubject $teacherSubject): RedirectResponse
+    {
+        $teacherSubject->delete();
+        ActivityLogger::log('delete', 'Menghapus mapping guru-mapel-kelas');
+
+        return redirect()->route('admin.teacher-subjects.index')->with('success', 'Mapping berhasil dihapus');
     }
 }

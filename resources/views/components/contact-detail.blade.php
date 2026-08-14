@@ -13,15 +13,15 @@
          onclick="window.closeModal('{{ $mid }}')"></div>
 
     <div class="fixed inset-0 flex items-center justify-center p-4">
-        <div class="modal-content w-full max-w-[640px] bg-surface-container-lowest rounded-2xl shadow-2xl ring-1 ring-outline-variant dark:ring-outline dark:shadow-none dark:ring-1 dark:ring-primary/20 transform transition-all duration-200">
-            {{-- Green top accent --}}
-            <div class="h-1.5 bg-green-600 dark:bg-green-500 rounded-t-2xl"></div>
+        <div class="modal-content w-full max-w-[640px] bg-surface-container-lowest rounded-xl shadow-lg ring-1 ring-outline-variant transform transition-all duration-200">
+            {{-- Top accent --}}
+            <div class="h-1.5 bg-primary rounded-t-xl"></div>
 
             {{-- Header --}}
-            <div class="flex items-center justify-between px-lg pt-lg pb-md border-b border-outline-variant dark:border-outline">
+            <div class="flex items-center justify-between px-6 pt-6 pb-4 border-b border-outline-variant">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center">
-                        <span class="material-symbols-outlined text-green-700 dark:text-green-400">mail</span>
+                    <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center">
+                        <span class="material-symbols-outlined text-on-primary-container">mail</span>
                     </div>
                     <h2 id="{{ $mid }}-title" class="text-headline-md font-bold text-on-surface">Detail Pesan</h2>
                 </div>
@@ -34,10 +34,10 @@
             </div>
 
             {{-- Body --}}
-            <div class="px-lg py-lg space-y-lg max-h-[60vh] overflow-y-auto">
+            <div class="px-6 py-6 space-y-6 max-h-[60vh] overflow-y-auto">
                 {{-- Informasi --}}
-                <div class="bg-surface-container-low rounded-xl p-lg border border-outline-variant dark:border-outline">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-lg gap-y-md">
+                <div class="bg-surface-container-low rounded-lg p-6 border border-outline-variant">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
                         <div>
                             <p class="text-caption text-on-surface-variant uppercase tracking-wider mb-1">Pengirim</p>
                             <p class="text-body-md text-on-surface font-semibold">{{ $message?->user?->name ?? '-' }}</p>
@@ -55,12 +55,12 @@
                         <div>
                             <p class="text-caption text-on-surface-variant uppercase tracking-wider mb-1">Status</p>
                             @if($message?->admin_reply)
-                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 text-label-md font-semibold border border-green-300 dark:border-green-700">
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed-variant text-label-md font-semibold border border-tertiary/30">
                                     <span class="material-symbols-outlined text-[16px]">check_circle</span>
                                     Dibalas
                                 </span>
                             @else
-                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 text-label-md font-semibold border border-amber-300 dark:border-amber-700">
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-warning-container text-on-warning-container text-label-md font-semibold border border-warning/30">
                                     <span class="material-symbols-outlined text-[16px]">pending</span>
                                     Menunggu
                                 </span>
@@ -75,7 +75,7 @@
                         <span class="material-symbols-outlined text-[18px] text-primary">article</span>
                         <p class="text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Isi Pesan</p>
                     </div>
-                    <div class="bg-surface-container-high rounded-xl p-lg border border-outline-variant dark:border-outline">
+                    <div class="bg-surface-container-high rounded-lg p-6 border border-outline-variant">
                         <p class="text-body-md text-on-surface whitespace-pre-line leading-relaxed">
                             {{ $message?->message ?? '-' }}
                         </p>
@@ -85,39 +85,39 @@
                 {{-- Balasan Admin --}}
                 <div>
                     <div class="flex items-center gap-2 mb-2">
-                        <span class="material-symbols-outlined text-[18px] text-green-600 dark:text-green-400">reply</span>
+                        <span class="material-symbols-outlined text-[18px] text-tertiary">reply</span>
                         <p class="text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Balasan Admin</p>
                     </div>
                     @if($message?->admin_reply)
-                        <div class="bg-green-50 dark:bg-green-900/25 rounded-xl p-lg border border-green-200 dark:border-green-800">
+                        <div class="bg-tertiary-fixed/40 rounded-lg p-6 border border-tertiary/30">
                             <p class="text-body-md text-on-surface whitespace-pre-line leading-relaxed">
                                 {{ $message->admin_reply }}
                             </p>
                             @if($message->replied_at)
-                                <p class="text-caption text-green-700 dark:text-green-400 font-medium mt-sm">
+                                <p class="text-caption text-tertiary-container font-medium mt-2">
                                     {{ $message->replied_at->format('d/m/Y H:i') }}
                                 </p>
                             @endif
                         </div>
                     @else
-                        <div class="flex items-center gap-3 px-lg py-md rounded-xl bg-surface-container-high border border-dashed border-amber-300 dark:border-amber-700">
-                            <span class="material-symbols-outlined text-[20px] text-amber-600 dark:text-amber-400">hourglass_empty</span>
-                            <span class="text-body-md text-amber-800 dark:text-amber-300 font-semibold">Belum Dibalas</span>
+                        <div class="flex items-center gap-3 px-6 py-4 rounded-lg bg-surface-container-high border border-dashed border-warning/50">
+                            <span class="material-symbols-outlined text-[20px] text-warning">hourglass_empty</span>
+                            <span class="text-body-md text-on-warning-container font-semibold">Belum Dibalas</span>
                         </div>
                     @endif
                 </div>
             </div>
 
             {{-- Footer --}}
-            <div class="flex items-center justify-end gap-md px-lg py-md border-t border-outline-variant dark:border-outline bg-surface-container-low rounded-b-2xl">
+            <div class="flex items-center justify-end gap-4 px-6 py-4 border-t border-outline-variant bg-surface-container-low rounded-b-xl">
                 <button type="button"
                         onclick="window.closeModal('{{ $mid }}')"
-                        class="px-lg py-2 rounded-lg border border-outline-variant dark:border-outline text-label-md font-medium text-on-surface hover:bg-surface-container-high transition-colors">
+                        class="px-6 py-2 rounded-lg border border-outline-variant text-label-md font-medium text-on-surface hover:bg-surface-container-high transition-colors">
                     Tutup
                 </button>
                 <button type="button"
                         onclick="window.print()"
-                        class="px-lg py-2 rounded-lg bg-green-600 text-label-md font-medium text-white hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 transition-colors flex items-center gap-1">
+                        class="px-6 py-2 rounded-lg bg-primary text-label-md font-medium text-on-primary hover:bg-primary/90 transition-colors flex items-center gap-1">
                     <span class="material-symbols-outlined text-[18px]">print</span>
                     Cetak
                 </button>

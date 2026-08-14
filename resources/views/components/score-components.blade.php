@@ -4,7 +4,7 @@
     'class' => '',
 ])
 
-<div class="inline-flex bg-surface-container-high p-1 rounded-xl shadow-inner border border-outline-variant {{ $class }}">
+<div class="inline-flex bg-surface-container-high p-1 rounded-lg border border-outline-variant {{ $class }}">
     @foreach($components as $component)
         @php
             $labels = ['tugas' => 'Tugas', 'ph' => 'Harian', 'uts' => 'UTS', 'uas' => 'UAS'];

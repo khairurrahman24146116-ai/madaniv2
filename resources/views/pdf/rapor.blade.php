@@ -149,7 +149,7 @@
                 <td>
                     <div class="role">{{ $generated_at ? 'Diproses pada,' : 'Wali Kelas' }}</div>
                     <div class="role">Administrator Sistem</div>
-                    <div class="name">( {{ config('app.name') }} )</div>
+                    <div class="name">( SMA Dayah Madani Al-Aziziyah )</div>
                     <div class="nip">Sistem Informasi Terpadu</div>
                 </td>
             </tr>

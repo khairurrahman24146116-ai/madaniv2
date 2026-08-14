@@ -16,9 +16,9 @@
 
 @php
     $inputClasses = 'w-full rounded-lg border border-outline-variant bg-surface-bright text-on-surface placeholder:text-on-surface-variant transition-colors';
-    $focusClasses = 'focus:ring-2 focus:ring-primary/25 focus:border-primary outline-none';
+    $focusClasses = 'focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none';
     $disabledClasses = 'disabled:bg-surface-container-high disabled:cursor-not-allowed disabled:opacity-75';
-    $errorClasses = $error ? 'border-error focus:ring-error/25 focus:border-error' : '';
+    $errorClasses = $error ? 'border-error focus:ring-error/20 focus:border-error' : '';
     $sizes = 'px-4 py-2.5 text-body-md';
     
     $labelClasses = 'block text-label-md font-medium text-on-surface-variant mb-1.5';
@@ -42,8 +42,8 @@
             @if($placeholder)
                 <option value="" disabled selected>{{ $placeholder }}</option>
             @endif
-            @foreach($options as $value => $label)
-                <option value="{{ $value }}" @selected(old($name, $value) == $value)>{{ $label }}</option>
+            @foreach($options as $optionValue => $optionLabel)
+                <option value="{{ $optionValue }}" @selected((string)old($name, $value) === (string)$optionValue)>{{ $optionLabel }}</option>
             @endforeach
         </select>
     @elseif($type === 'textarea')

@@ -35,7 +35,7 @@
 
 <div class="w-full {{ $class }}">
     @if($label)
-        <label for="{{ $inputId }}" id="{{ $labelId }}" class="block text-label-md text-on-surface-variant mb-xs">
+        <label for="{{ $inputId }}" id="{{ $labelId }}" class="block text-label-md text-on-surface-variant mb-1">
             {{ $label }}
             @if($required)
                 <span class="text-error ml-0.5" aria-hidden="true">*</span>
@@ -54,8 +54,8 @@
             @if($placeholder)
                 <option value="" disabled selected>{{ $placeholder }}</option>
             @endif
-            @foreach($options as $value => $label)
-                <option value="{{ $value }}" {{ (string)$value === (string)($value ?? old($name)) ? 'selected' : '' }}>{{ $label }}</option>
+            @foreach($options as $optionValue => $optionLabel)
+                <option value="{{ $optionValue }}" @selected((string)old($name, $value) === (string)$optionValue)>{{ $optionLabel }}</option>
             @endforeach
         </select>
     @elseif($type === 'textarea')
@@ -124,12 +124,12 @@
     @endif
     
     @if($error)
-        <p id="{{ $errorId }}" class="mt-xs text-caption text-error flex items-center gap-1" role="alert">
+        <p id="{{ $errorId }}" class="mt-1.5 text-caption text-error flex items-center gap-1" role="alert">
             <span class="material-symbols-outlined text-[14px]">error_outline</span>
             {{ $error }}
         </p>
     @elseif($hint)
-        <p id="{{ $hintId }}" class="mt-xs text-caption text-on-surface-variant flex items-center gap-1">
+        <p id="{{ $hintId }}" class="mt-1.5 text-caption text-on-surface-variant flex items-center gap-1">
             {{ $hint }}
         </p>
     @endif

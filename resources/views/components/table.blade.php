@@ -21,19 +21,18 @@
 ])
 
 @php
-    $compactClass = $compact ? 'text-sm' : 'text-body-md';
+    $compactClass = 'font-data-table text-data-table';
     $stripedClass = $striped && !$compact ? 'odd:bg-surface-container-low' : '';
     $hoverClass = $hoverable ? 'hover:bg-surface-container' : '';
     $borderedClass = $bordered ? 'divide-y divide-outline-variant' : '';
-    $darkBorderedClass = $bordered ? 'dark:divide-outline' : '';
 @endphp
 
 <div class="overflow-x-auto {{ $class }}">
-    <table class="w-full border-collapse {{ $compactClass }} {{ $stripedClass }} {{ $hoverClass }} {{ $borderedClass }} {{ $darkBorderedClass }}">
-        <thead class="bg-surface-container-low border-b border-outline-variant dark:border-outline sticky top-0">
+    <table class="w-full border-collapse {{ $compactClass }} {{ $stripedClass }} {{ $hoverClass }} {{ $borderedClass }}">
+        <thead class="bg-surface-container-low border-b border-outline-variant">
             <tr>
                 @if($checkbox || $selectable)
-                    <th class="px-md py-sm text-left">
+                    <th class="px-3 py-2 text-left">
                         <input type="checkbox"
                                class="w-4 h-4 rounded border-outline-variant text-primary focus:ring-2 focus:ring-primary/20"
                                @if($selectable && count($selected) === count($rows)) checked @endif
@@ -43,7 +42,7 @@
                 
                 @foreach($headers as $header)
                     @php
-                        $colClass = 'px-md py-sm text-left text-label-md font-semibold text-on-surface-variant uppercase tracking-wider';
+                        $colClass = 'px-3 py-2 text-left font-label-mono text-label-mono font-semibold text-on-surface-variant uppercase tracking-wider';
                         if (isset($header['class'])) $colClass .= ' ' . $header['class'];
                         if (isset($header['align'])) $colClass .= ' text-' . $header['align'];
                     @endphp
@@ -68,24 +67,24 @@
                 @endforeach
                 
                 @if($actions)
-                    <th class="px-md py-sm text-left text-label-md font-semibold text-on-surface-variant uppercase tracking-wider">Aksi</th>
+                    <th class="px-3 py-2 text-left font-label-mono text-label-mono font-semibold text-on-surface-variant uppercase tracking-wider">Aksi</th>
                 @endif
             </tr>
         </thead>
         
-        <tbody class="divide-y divide-outline-variant dark:divide-outline">
+        <tbody class="divide-y divide-outline-variant">
             @forelse($rows as $row)
                 @php
                     $rowKey = $row[$key] ?? $row->{$key} ?? $loop->index;
                     $isSelected = $selectable && in_array($rowKey, $selected);
-                    $trClass = $isSelected ? 'bg-primary/5 dark:bg-primary/10' : '';
+                    $trClass = $isSelected ? 'bg-primary/5' : '';
                     if ($rowClass) {
                         $trClass .= ' ' . $rowClass($row);
                     }
                 @endphp
-                <tr class="{{ $trClass }}" @if($rowClass) wire:click="selectRow('{{ $rowKey }}')" @endif>
+                <tr class="animate-fade-in stagger-delay {{ $trClass }}" style="--stagger: {{ min($loop->index, 10) }}" @if($rowClass) wire:click="selectRow('{{ $rowKey }}')" @endif>
                     @if($checkbox || $selectable)
-                        <td class="px-md py-sm">
+                        <td class="px-3 py-2">
                             <input type="checkbox"
                                    value="{{ $rowKey }}"
                                    class="w-4 h-4 rounded border-outline-variant text-primary focus:ring-2 focus:ring-primary/20"
@@ -97,10 +96,10 @@
                     @foreach($headers as $header)
                         @php
                             $cellValue = data_get($row, $header['key'] ?? $header['label']);
-                            $tdClass = 'px-md py-sm text-on-surface';
+                            $tdClass = 'px-3 py-2 text-on-surface';
                             if (isset($header['class'])) $tdClass .= ' ' . $header['class'];
                             if (isset($header['align'])) $tdClass .= ' text-' . $header['align'];
-                            if (isset($header['mono'])) $tdClass .= ' font-mono tabular-nums';
+                            if (isset($header['mono'])) $tdClass .= ' font-data-table tabular-nums';
                         @endphp
                         <td class="{{ $tdClass }}">
                             @if(isset($header['format']))
@@ -117,7 +116,7 @@
                     @endforeach
                     
                     @if($actions)
-                        <td class="px-md py-sm">
+                        <td class="px-3 py-2">
                             <div class="flex items-center gap-1">
                                 @foreach($actions as $action)
                                     @php
@@ -128,7 +127,7 @@
                                         @if(isset($action['href']))
                                             <a href="{{ $action['href']($row) }}"
                                                class="p-1.5 rounded-lg hover:bg-surface-container transition-colors text-on-surface-variant {{ $disabled ? 'opacity-50 pointer-events-none' : '' }}"
-                                               @if(isset($action['confirm'])) onclick="return confirm('{{ $action['confirm']($row) }}')" @endif
+                                               @if(isset($action['confirm'])) data-confirm="{{ $action['confirm']($row) }}" data-confirm-title="Konfirmasi" data-confirm-variant="danger" data-confirm-confirm-text="Ya, Lanjutkan" @endif
                                                @if(isset($action['title'])) title="{{ $action['title']($row) }}" @endif>
                                                 <span class="material-symbols-outlined text-[18px]">{{ $action['icon'] }}</span>
                                             </a>
@@ -136,7 +135,7 @@
                                             <button type="button"
                                                     class="p-1.5 rounded-lg hover:bg-surface-container transition-colors text-on-surface-variant {{ $disabled ? 'opacity-50 pointer-events-none' : '' }}"
                                                     @if(isset($action['click'])) wire:click="{{ $action['click'] }}({{ $rowKey }})" @else onclick="{{ $action['onclick'] }}({{ $rowKey }})" @endif
-                                                    @if(isset($action['confirm'])) onclick="return confirm('{{ $action['confirm']($row) }}')" @endif
+                                                    @if(isset($action['confirm'])) data-confirm="{{ $action['confirm']($row) }}" data-confirm-title="Konfirmasi" data-confirm-variant="danger" data-confirm-confirm-text="Ya, Lanjutkan" @endif
                                                     @if(isset($action['title'])) title="{{ $action['title']($row) }}" @endif>
                                                 <span class="material-symbols-outlined text-[18px]">{{ $action['icon'] }}</span>
                                             </button>
@@ -150,8 +149,8 @@
             @empty
                 <tr>
                     <td colspan="{{ count($headers) + ($checkbox || $selectable ? 1 : 0) + ($actions ? 1 : 0) }}"
-                        class="px-md py-xl text-center text-on-surface-variant">
-                        <div class="flex flex-col items-center gap-sm">
+                        class="px-3 py-8 text-center text-on-surface-variant">
+                        <div class="flex flex-col items-center gap-2">
                             <span class="material-symbols-outlined text-4xl opacity-30">{{ $emptyIcon }}</span>
                             <p class="text-body-md">{{ $emptyMessage }}</p>
                         </div>

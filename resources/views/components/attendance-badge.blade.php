@@ -10,25 +10,25 @@
         'H' => [
             'label' => 'Hadir',
             'short' => 'H',
-            'bg' => 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+            'bg' => 'bg-tertiary-fixed text-on-tertiary-fixed-variant',
             'icon' => 'check_circle',
         ],
         'S' => [
             'label' => 'Sakit',
             'short' => 'S',
-            'bg' => 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
+            'bg' => 'bg-secondary-fixed text-on-secondary-fixed-variant',
             'icon' => 'healing',
         ],
         'I' => [
             'label' => 'Izin',
             'short' => 'I',
-            'bg' => 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
+            'bg' => 'bg-primary-fixed text-on-primary-fixed-variant',
             'icon' => 'event_note',
         ],
         'A' => [
             'label' => 'Alpa',
             'short' => 'A',
-            'bg' => 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+            'bg' => 'bg-error-container text-on-error-container',
             'icon' => 'cancel',
         ],
     ];
@@ -50,7 +50,7 @@
     $iconClass = $iconSizes[$size] ?? $iconSizes['md'];
 @endphp
 
-<span class="inline-flex items-center gap-1 font-semibold rounded-full {{ $config['bg'] }} {{ $sizeClass }} {{ $class }}">
+<span class="inline-flex items-center gap-1 font-medium rounded-full {{ $config['bg'] }} {{ $sizeClass }} {{ $class }}">
     <span class="material-symbols-outlined {{ $iconClass }}">{{ $config['icon'] }}</span>
     @if($showLabel)
         {{ $config['label'] }}

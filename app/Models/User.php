@@ -78,6 +78,30 @@ class User extends Authenticatable
     }
 
     /**
+     * Relasi ke surat yang dibuat oleh pengguna.
+     */
+    public function letters(): HasMany
+    {
+        return $this->hasMany(Letter::class, 'user_id');
+    }
+
+    /**
+     * Relasi ke pesan masuk (contact messages) dari pengguna.
+     */
+    public function contactMessages(): HasMany
+    {
+        return $this->hasMany(ContactMessage::class, 'user_id');
+    }
+
+    /**
+     * Relasi ke permintaan pertemuan (meetings) dari pengguna.
+     */
+    public function meetings(): HasMany
+    {
+        return $this->hasMany(Meeting::class, 'user_id');
+    }
+
+    /**
      * Cek apakah user memiliki role admin.
      */
     public function isAdmin(): bool
@@ -99,5 +123,13 @@ class User extends Authenticatable
     public function isWaliMurid(): bool
     {
         return $this->role === 'wali_murid';
+    }
+
+    /**
+     * Cek apakah user memiliki role bendahara (petugas keuangan).
+     */
+    public function isBendahara(): bool
+    {
+        return $this->role === 'bendahara';
     }
 }

@@ -9,7 +9,7 @@
         @csrf
         <div class="space-y-5">
             <div>
-                <label class="block text-label-md text-on-surface-variant mb-xs">GURU</label>
+                <label class="block text-label-md text-on-surface-variant mb-1">GURU</label>
                 <select name="user_id" required
                     class="w-full rounded-lg border border-outline-variant bg-surface-bright text-on-surface px-4 py-3 text-body-md outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors">
                     <option value="">Pilih guru</option>
@@ -20,7 +20,7 @@
                 @error('user_id')<p class="text-error text-caption mt-1">{{ $message }}</p>@enderror
             </div>
             <div>
-                <label class="block text-label-md text-on-surface-variant mb-xs">MATA PELAJARAN</label>
+                <label class="block text-label-md text-on-surface-variant mb-1">MATA PELAJARAN</label>
                 <select name="subject_id" required
                     class="w-full rounded-lg border border-outline-variant bg-surface-bright text-on-surface px-4 py-3 text-body-md outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors">
                     <option value="">Pilih mapel</option>
@@ -31,7 +31,7 @@
                 @error('subject_id')<p class="text-error text-caption mt-1">{{ $message }}</p>@enderror
             </div>
             <div>
-                <label class="block text-label-md text-on-surface-variant mb-xs">KELAS</label>
+                <label class="block text-label-md text-on-surface-variant mb-1">KELAS</label>
                 <select name="classroom_id" required
                     class="w-full rounded-lg border border-outline-variant bg-surface-bright text-on-surface px-4 py-3 text-body-md outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors">
                     <option value="">Pilih kelas</option>
@@ -41,7 +41,7 @@
                 </select>
                 @error('classroom_id')<p class="text-error text-caption mt-1">{{ $message }}</p>@enderror
             </div>
-            <div class="flex gap-md pt-md border-t border-outline-variant">
+            <div class="flex gap-4 pt-4 border-t border-outline-variant">
                 <x-button variant="primary" type="submit" icon="save">Simpan</x-button>
                 <x-button variant="outline" href="{{ route('admin.teacher-subjects.index') }}">Batal</x-button>
             </div>

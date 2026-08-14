@@ -1,39 +1,33 @@
 @props([
-    'variant' => 'default', // default, elevated, outlined, filled
+    'variant' => 'outlined', // elevated, outlined, filled
     'padding' => 'md', // none, sm, md, lg, xl
     'hover' => false,
     'class' => '',
-    'borderLeft' => null, // color class for left border accent
+    'borderLeft' => null,
 ])
 
 @php
     $variants = [
-        'default' => 'bg-surface-container-lowest border border-outline-variant',
         'elevated' => 'bg-surface-container-low shadow-sm',
-        'outlined' => 'bg-surface-container-lowest border-2 border-outline',
+        'outlined' => 'bg-surface-container-lowest border border-outline-variant',
         'filled' => 'bg-surface-container-high',
     ];
     
     $paddings = [
         'none' => '',
-        'sm' => 'p-sm',
-        'md' => 'p-md',
-        'lg' => 'p-lg',
-        'xl' => 'p-xl',
+        'sm' => 'p-3',
+        'md' => 'p-4',
+        'lg' => 'p-6',
+        'xl' => 'p-8',
     ];
     
-    $hoverClass = $hover ? 'hover:bg-surface-container-low dark:hover:bg-surface-container transition-colors' : '';
-    $variantClass = $variants[$variant] ?? $variants['default'];
+    $hoverClass = $hover ? 'hover:bg-surface-container-low transition-colors' : '';
+    $variantClass = $variants[$variant] ?? $variants['outlined'];
     $paddingClass = $paddings[$padding] ?? $paddings['md'];
     $borderLeftClass = $borderLeft ? "border-l-4 {$borderLeft}" : '';
-    
-    // Dark mode adjustments
-    $darkAdjustments = 'dark:border-outline dark:shadow-none';
-    if ($variant === 'default') {
-        $darkAdjustments .= ' dark:border-t-2 dark:border-primary';
-    }
+    $liftClass = $hover ? 'lift' : '';
 @endphp
 
-<div class="rounded-lg {{ $variantClass }} {{ $paddingClass }} {{ $hoverClass }} {{ $borderLeftClass }} {{ $darkAdjustments }} {{ $class }}">
+<div class="rounded-lg {{ $variantClass }} {{ $paddingClass }} {{ $hoverClass }} {{ $liftClass }} {{ $borderLeftClass }} {{ $class }}">
     {{ $slot }}
 </div>

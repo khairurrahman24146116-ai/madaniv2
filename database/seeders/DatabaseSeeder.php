@@ -43,6 +43,11 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Ustazah Fatimah', 'password' => Hash::make('guru123'), 'role' => 'guru', 'is_active' => true, 'must_change_password' => false]
         );
 
+        $bendahara = User::firstOrCreate(
+            ['email' => 'bendahara@madani.id'],
+            ['name' => 'Bendahara SMA', 'password' => Hash::make('bendahara123'), 'role' => 'bendahara', 'is_active' => true, 'must_change_password' => false]
+        );
+
         // ===== Kelas =====
         $kelasX = Classroom::firstOrCreate(['name' => 'X IPA 1', 'grade' => 'X', 'academic_year' => '2025/2026']);
         $kelasXI = Classroom::firstOrCreate(['name' => 'XI IPA 1', 'grade' => 'XI', 'academic_year' => '2025/2026']);

@@ -56,4 +56,33 @@ class AuthTest extends TestCase
         $response = $this->getJson('/auth/me');
         $response->assertStatus(401);
     }
+
+    public function test_login_web_guest_can_render(): void
+    {
+        $response = $this->get('/login');
+        $response->assertStatus(200);
+        $response->assertViewIs('auth.login');
+    }
+
+    public function test_login_web_success(): void
+    {
+        $response = $this->from('/login')->post('/auth/login/web', [
+            'email' => 'admin@madani.id',
+            'password' => 'admin123',
+        ]);
+
+        $response->assertRedirect();
+        $this->assertAuthenticated();
+    }
+
+    public function test_login_web_invalid_credentials(): void
+    {
+        $response = $this->from('/login')->post('/auth/login/web', [
+            'email' => 'admin@madani.id',
+            'password' => 'wrong',
+        ]);
+
+        $response->assertRedirect('/login');
+        $response->assertSessionHasErrors('email');
+    }
 }

@@ -14,7 +14,9 @@ class StudentFactory extends Factory
 
     public function definition(): array
     {
-        $nis = fake()->unique()->numerify('1###');
+        // Kisaran 9#### (90000-99999) menjauhkan NIS factory dari NIS seeder
+        // (1001-3003) sehingga fake()->unique() tidak bentrok dengan data seeder.
+        $nis = fake()->unique()->numerify('9####');
 
         return [
             'user_id' => User::factory()->create(['role' => 'wali_murid', 'password' => Str::random(10), 'must_change_password' => true])->id,

@@ -11,9 +11,9 @@
 />
 
 {{-- Selection --}}
-<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter mb-lg">
-    <form method="GET" action="{{ route('scores.create') }}" class="md:col-span-8 x-card p-md">
-        <label class="block text-label-md text-on-surface-variant mb-xs" for="teacher_subject_id">MATA PELAJARAN DAN KELAS</label>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter mb-6">
+    <form method="GET" action="{{ route('scores.create') }}" class="md:col-span-8 x-card p-4">
+        <label class="block text-label-md text-on-surface-variant mb-1" for="teacher_subject_id">MATA PELAJARAN DAN KELAS</label>
         <select id="teacher_subject_id" name="teacher_subject_id" onchange="this.form.submit()" class="w-full rounded-lg border-outline-variant bg-surface-bright text-on-surface focus:ring-primary focus:border-primary py-2 px-3 text-body-md">
             @forelse($teacherSubjects as $mapping)
             <option value="{{ $mapping->id }}" @selected($selectedMapping?->id === $mapping->id)>
@@ -24,10 +24,10 @@
             @endforelse
         </select>
     </form>
-    <div class="md:col-span-4 bg-primary-container text-on-primary-container rounded-xl p-md flex flex-col justify-between">
+    <div class="md:col-span-4 bg-primary-container text-on-primary-container rounded-xl p-4 flex flex-col justify-between">
         <div>
             <h3 class="text-label-md opacity-80 uppercase tracking-wider">Bobot Nilai Saat Ini</h3>
-            <div class="mt-xs flex items-baseline gap-xs">
+            <div class="mt-1 flex items-baseline gap-1">
                 <span class="text-[24px] font-bold">{{ count($students) }}</span>
                 <span class="text-xs opacity-70">SISWA AKTIF</span>
             </div>
@@ -36,10 +36,10 @@
 </div>
 
 {{-- Segmented Control --}}
-<div class="mb-lg flex flex-col sm:flex-row sm:items-center justify-between gap-md">
-    <div class="inline-flex bg-surface-container-high p-1 rounded-xl shadow-inner border border-outline-variant">
+<div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div class="grid grid-cols-4 gap-1 sm:inline-flex sm:gap-0 w-full sm:w-auto bg-surface-container-high p-1 rounded-xl shadow-inner border border-outline-variant">
         @foreach(['tugas' => 'Tugas', 'ph' => 'Harian', 'uts' => 'UTS', 'uas' => 'UAS'] as $code => $label)
-        <button type="button" data-component="{{ $code }}" class="score-component px-6 py-2 rounded-lg text-label-md @if($loop->first) bg-primary text-on-primary shadow-sm @else text-on-surface-variant hover:bg-surface-container @endif transition-all">{{ $label }}</button>
+        <button type="button" data-component="{{ $code }}" class="score-component px-3 sm:px-6 py-2 rounded-lg text-label-md text-center sm:text-left @if($loop->first) bg-primary text-on-primary shadow-sm @else text-on-surface-variant hover:bg-surface-container @endif transition-all">{{ $label }}</button>
         @endforeach
     </div>
 </div>
@@ -49,18 +49,18 @@
     <table class="w-full min-w-[720px] text-left border-collapse">
         <thead>
             <tr class="bg-surface-container-low border-b border-outline-variant">
-                <th class="px-md py-4 text-label-md text-on-surface-variant">SISWA</th>
-                <th class="px-md py-4 text-label-md text-on-surface-variant text-center w-24">NIS</th>
-                <th class="px-md py-4 text-label-md text-on-surface-variant text-center w-32">NILAI (0-100)</th>
-                <th class="px-md py-4 text-label-md text-on-surface-variant text-center w-32">STATUS</th>
-                <th class="px-md py-4 text-label-md text-on-surface-variant text-center w-20">NA*</th>
+                <th class="px-4 py-4 text-label-md text-on-surface-variant">SISWA</th>
+                <th class="px-4 py-4 text-label-md text-on-surface-variant text-center w-24">NIS</th>
+                <th class="px-4 py-4 text-label-md text-on-surface-variant text-center w-32">NILAI (0-100)</th>
+                <th class="px-4 py-4 text-label-md text-on-surface-variant text-center w-32">STATUS</th>
+                <th class="px-4 py-4 text-label-md text-on-surface-variant text-center w-20">NA*</th>
             </tr>
         </thead>
         <tbody class="divide-y divide-outline-variant">
             @foreach($students ?? [] as $student)
             <tr class="hover:bg-surface-container-low transition-colors">
-                <td class="px-md py-4">
-                    <div class="flex items-center gap-md">
+                <td class="px-4 py-4">
+                    <div class="flex items-center gap-4">
                         <div class="w-10 h-10 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center font-bold">{{ strtoupper(substr($student->name, 0, 1)) }}</div>
                         <div>
                             <p class="text-body-lg text-on-surface font-semibold">{{ $student->name }}</p>
@@ -68,14 +68,14 @@
                         </div>
                     </div>
                 </td>
-                <td class="px-md py-4 text-center text-body-md text-on-surface-variant">{{ $student->nis }}</td>
-                <td class="px-md py-4">
+                <td class="px-4 py-4 text-center text-body-md text-on-surface-variant">{{ $student->nis }}</td>
+                <td class="px-4 py-4">
                     <input class="w-full text-center rounded-lg border-outline-variant bg-surface-bright focus:ring-primary focus:border-primary py-2 text-body-md score-input" data-student-id="{{ $student->id }}" max="100" min="0" placeholder="Nilai" type="number">
                 </td>
-                <td class="px-md py-4 text-center">
+                <td class="px-4 py-4 text-center">
                     <span class="px-3 py-1 bg-surface-container text-on-surface-variant rounded-full text-xs font-semibold">BELUM</span>
                 </td>
-                <td class="px-md py-4 text-center font-bold text-on-surface-variant">-</td>
+                <td class="px-4 py-4 text-center font-bold text-on-surface-variant">-</td>
             </tr>
             @endforeach
         </tbody>
@@ -83,8 +83,8 @@
 </x-card>
 
 {{-- Action Bar --}}
-<div class="mt-lg grid grid-cols-1 md:grid-cols-12 gap-gutter items-end">
-    <div class="md:col-span-8 bg-surface-container-low rounded-lg p-md border border-outline-variant flex flex-wrap gap-xl">
+<div class="mt-6 grid grid-cols-1 md:grid-cols-12 gap-gutter items-end">
+    <div class="md:col-span-8 bg-surface-container-low rounded-lg p-4 border border-outline-variant flex flex-wrap gap-8">
         <div>
             <p class="text-caption text-on-surface-variant">RATA-RATA KELAS</p>
             <p class="text-headline-md text-primary" id="avg-score">-</p>
@@ -97,14 +97,14 @@
         <div class="w-px h-10 bg-outline-variant self-center"></div>
         <div>
             <p class="text-caption text-on-surface-variant">KETUNTASAN</p>
-            <p class="text-headline-md text-green-700" id="pass-rate">-</p>
+            <p class="text-headline-md text-tertiary-container" id="pass-rate">-</p>
         </div>
     </div>
     <div class="md:col-span-4">
         <x-button id="save-scores" variant="primary" size="xl" type="button" icon="save" icon-position="left" class="w-full" :disabled="!$selectedMapping || count($students) === 0">
             Simpan Nilai
         </x-button>
-        <p id="score-feedback" class="text-center text-xs text-on-surface-variant mt-sm" role="status">Masukkan nilai, lalu simpan komponen yang dipilih.</p>
+        <p id="score-feedback" class="text-center text-xs text-on-surface-variant mt-2" role="status">Masukkan nilai, lalu simpan komponen yang dipilih.</p>
     </div>
 </div>
 
@@ -118,7 +118,7 @@
         <input type="hidden" name="semester" value="ganjil">
         <input type="hidden" name="academic_year" value="2025/2026">
         <p id="import-feedback" class="text-xs text-on-surface-variant"></p>
-        <div class="flex justify-end gap-sm pt-4">
+        <div class="flex justify-end gap-2 pt-4">
             <x-button variant="ghost" type="button" onclick="closeModal('import-modal')">Batal</x-button>
             <x-button variant="primary" type="submit" icon="upload_file" id="import-submit">Import</x-button>
         </div>
@@ -185,7 +185,7 @@
 
         if (!scores.length) {
             feedback.textContent = 'Masukkan setidaknya satu nilai sebelum menyimpan.';
-            feedback.className = 'text-center text-xs text-error mt-sm';
+            feedback.className = 'text-center text-xs text-error mt-2';
             return;
         }
 
@@ -211,11 +211,11 @@
             if (!response.ok) throw new Error(result.message || 'Nilai gagal disimpan.');
 
             feedback.textContent = result.message;
-            feedback.className = 'text-center text-xs text-green-700 mt-sm';
+            feedback.className = 'text-center text-xs text-tertiary-container mt-2';
             saveButton.innerHTML = '<span class="material-symbols-outlined">check_circle</span> Nilai Tersimpan';
         } catch (error) {
             feedback.textContent = error.message;
-            feedback.className = 'text-center text-xs text-error mt-sm';
+            feedback.className = 'text-center text-xs text-error mt-2';
             saveButton.innerHTML = '<span class="material-symbols-outlined">save</span> Simpan Nilai';
         } finally {
             saveButton.disabled = false;
@@ -250,12 +250,12 @@
             if (!response.ok) throw new Error(result.message || 'Import gagal.');
 
             importFeedback.textContent = result.message;
-            importFeedback.className = 'text-xs text-green-700 mt-sm';
+            importFeedback.className = 'text-xs text-tertiary-container mt-2';
             importSubmit.innerHTML = '<span class="material-symbols-outlined">check_circle</span> Selesai';
             setTimeout(() => location.reload(), 1500);
         } catch (error) {
             importFeedback.textContent = error.message;
-            importFeedback.className = 'text-xs text-error mt-sm';
+            importFeedback.className = 'text-xs text-error mt-2';
             importSubmit.innerHTML = '<span class="material-symbols-outlined">upload_file</span> Import';
         } finally {
             importSubmit.disabled = false;

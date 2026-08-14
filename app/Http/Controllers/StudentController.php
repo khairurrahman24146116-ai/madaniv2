@@ -2,13 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\MoveStudentRequest;
+use App\Http\Requests\StoreStudentRequest;
+use App\Http\Requests\UpdateStudentRequest;
+use App\Models\Classroom;
 use App\Models\Score;
 use App\Models\Student;
 use App\Models\User;
+use App\Services\ActivityLogger;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\View\View;
 
 /**
  * Controller Student — CRUD & import data siswa.
@@ -248,5 +255,120 @@ class StudentController extends Controller
             'message' => "Import selesai: {$imported} siswa ditambahkan, {$skipped} dilewati (NIS duplikat)",
             'data' => ['imported' => $imported, 'skipped' => $skipped, 'errors' => $errors],
         ]);
+    }
+
+    /**
+     * Web (admin): daftar siswa dengan pencarian & filter status.
+     */
+    public function webIndex(Request $request): View
+    {
+        $query = Student::with('classroom');
+
+        if ($search = $request->get('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('nis', 'like', "{$search}%");
+            });
+        }
+
+        if ($request->has('status') && $request->get('status') !== '') {
+            $query->where('is_active', $request->boolean('status'));
+        }
+
+        $students = $query->orderBy('name')->paginate(50)->withQueryString();
+
+        return view('admin.students.index', compact('students'));
+    }
+
+    /**
+     * Web (admin): form tambah siswa.
+     */
+    public function webCreate(): View
+    {
+        $classrooms = Classroom::orderBy('grade')->orderBy('name')->get();
+
+        return view('admin.students.create', compact('classrooms'));
+    }
+
+    /**
+     * Web (admin): simpan siswa baru beserta akun user.
+     */
+    public function webStore(StoreStudentRequest $request): RedirectResponse
+    {
+        $data = $request->validated();
+        DB::transaction(function () use (&$data) {
+            $user = User::create([
+                'name' => $data['name'],
+                'email' => 'siswa'.$data['nis'].'@madani.id',
+                'password' => Str::random(10),
+                'role' => 'wali_murid',
+                'must_change_password' => true,
+            ]);
+            $data['user_id'] = $user->id;
+            Student::create($data);
+        });
+        ActivityLogger::log('create', 'Menambahkan siswa: '.$data['name'].' (NIS: '.$data['nis'].')');
+
+        return redirect()->route('admin.students.index')->with('success', 'Siswa berhasil ditambahkan');
+    }
+
+    /**
+     * Web (admin): form edit siswa.
+     */
+    public function webEdit(Student $student): View
+    {
+        $classrooms = Classroom::orderBy('grade')->orderBy('name')->get();
+
+        return view('admin.students.edit', compact('student', 'classrooms'));
+    }
+
+    /**
+     * Web (admin): perbarui data siswa & sinkron nama ke akun user.
+     */
+    public function webUpdate(UpdateStudentRequest $request, Student $student): RedirectResponse
+    {
+        $data = $request->validated();
+        $student->user->update(['name' => $data['name']]);
+        $student->update($data);
+        ActivityLogger::log('update', 'Mengubah siswa: '.$data['name'].' (NIS: '.$data['nis'].')', $student);
+
+        return redirect()->route('admin.students.index')->with('success', 'Siswa berhasil diperbarui');
+    }
+
+    /**
+     * Web (admin): hapus siswa beserta akun user-nya.
+     */
+    public function webDestroy(Student $student): RedirectResponse
+    {
+        $name = $student->name;
+        $nis = $student->nis;
+        $student->user()->delete();
+        $student->delete();
+        ActivityLogger::log('delete', 'Menghapus siswa: '.$name.' (NIS: '.$nis.')');
+
+        return redirect()->route('admin.students.index')->with('success', 'Siswa berhasil dihapus');
+    }
+
+    /**
+     * Web (admin): form pindah kelas siswa.
+     */
+    public function webMoveForm(Student $student): View
+    {
+        $classrooms = Classroom::where('id', '!=', $student->classroom_id)->orderBy('grade')->orderBy('name')->get();
+
+        return view('admin.students.move', compact('student', 'classrooms'));
+    }
+
+    /**
+     * Web (admin): pindahkan siswa ke kelas lain.
+     */
+    public function webMove(MoveStudentRequest $request, Student $student): RedirectResponse
+    {
+        $data = $request->validated();
+        $oldClassroom = $student->classroom->name;
+        $student->update(['classroom_id' => $data['classroom_id']]);
+        ActivityLogger::log('update', "Memindahkan siswa {$student->name} (NIS: {$student->nis}) dari {$oldClassroom} ke kelas baru");
+
+        return redirect()->route('admin.students.index')->with('success', 'Siswa berhasil dipindahkan');
     }
 }

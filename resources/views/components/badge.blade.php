@@ -1,5 +1,5 @@
 @props([
-    'variant' => 'default', // default, success, warning, error, info, neutral
+    'variant' => 'default', // default, success, warning, error, info, neutral, hadir, sakit, izin, alpa, lulus, tidak-lulus
     'size' => 'md', // sm, md, lg
     'dot' => false,
     'class' => '',
@@ -8,19 +8,19 @@
 @php
     $variants = [
         'default' => 'bg-surface-container text-on-surface-variant border border-outline-variant',
-        'success' => 'bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-300',
-        'warning' => 'bg-amber-50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300',
-        'error' => 'bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-300',
-        'info' => 'bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300',
-        'neutral' => 'bg-slate-50 text-slate-800 dark:bg-slate-800 dark:text-slate-300',
+        'success' => 'bg-tertiary-fixed text-on-tertiary-fixed-variant',
+        'warning' => 'bg-warning-container text-on-warning-container border border-warning/30',
+        'error' => 'bg-error-container text-on-error-container',
+        'info' => 'bg-secondary-fixed text-on-secondary-fixed-variant',
+        'neutral' => 'bg-surface-container-high text-on-surface-variant',
         // Attendance specific
-        'hadir' => 'bg-emerald-50 text-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300',
-        'sakit' => 'bg-amber-50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300',
-        'izin' => 'bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300',
-        'alpa' => 'bg-rose-50 text-rose-800 dark:bg-rose-900/20 dark:text-rose-300',
+        'hadir' => 'bg-tertiary-fixed text-on-tertiary-fixed-variant',
+        'sakit' => 'bg-secondary-fixed text-on-secondary-fixed-variant',
+        'izin' => 'bg-primary-fixed text-on-primary-fixed-variant',
+        'alpa' => 'bg-error-container text-on-error-container',
         // Grade specific
-        'lulus' => 'bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-300',
-        'tidak-lulus' => 'bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-300',
+        'lulus' => 'bg-tertiary-fixed text-on-tertiary-fixed-variant',
+        'tidak-lulus' => 'bg-error-container text-on-error-container',
     ];
     
     $sizes = [

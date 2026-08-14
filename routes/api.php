@@ -13,7 +13,7 @@ use App\Http\Controllers\TeacherSubjectController;
 use Illuminate\Support\Facades\Route;
 
 // ===== Public Auth =====
-Route::post('auth/login', [AuthController::class, 'login']);
+Route::post('auth/login', [AuthController::class, 'login'])->middleware('throttle:login');
 
 // ===== Authenticated API =====
 Route::middleware('auth:sanctum')->group(function () {

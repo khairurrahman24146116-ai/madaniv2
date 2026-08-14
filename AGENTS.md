@@ -169,3 +169,110 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 - To filter on a particular test name: `php artisan test --compact --filter=testName` (recommended after making a change to a related file).
 
 </laravel-boost-guidelines>
+
+<!-- ============================================================
+     RENCANA / PEMBAHASAN PRODUK (untuk klien) — 13 Agust 2026
+     ============================================================ -->
+
+## Pembahasan Fitur Baru (disetujui klien)
+
+### 1. Peran & Kontrol Admin terhadap Bendahara
+- Admin tetap **mengelola akun** bendahara: nonaktifkan/aktifkan, reset password sekali pakai.
+- Pencatatan & pembatalan SPP **hanya** dilakukan bendahara (pemisahan tugas tetap berlaku; admin hanya melihat rekap). [Alasan: anti-manipulasi/check-and-balance]
+
+### 2. Admin: Tambah / Edit / Hapus Pengguna
+- Admin dapat membuat akun baru (role: admin, bendahara, guru, wali_murid) lengkap dengan password default yang **wajib diganti saat login pertama**.
+- Bisa edit data akun (nama, email, role, telepon, alamat) dan hapus akun.
+- Guard: tidak bisa hapus diri sendiri; tidak bisa nonaktif/hapus admin aktif terakhir; tidak bisa hapus pengguna yang masih terkait data (wali→siswa, guru→mata pelajaran).
+
+### 3. Modul Pengumuman & Lowongan Guru
+- Modul **Pengumuman** baru: admin bisa membuat/mengedit/menghapus/menerbitkan pengumuman.
+- Kategori: `umum` dan `lowongan_guru`; status: draft/terbit.
+- Halaman publik **Lowongan** (tanpa login, `/lowongan`) menampilkan pengumuman kategori lowongan_guru yang sudah diterbitkan, ditaut dari beranda/login.
+- Widget "Pengumuman Sekolah" di dashboard wali murid memakai data asli (tidak lagi statis).
+
+### Status
+- [ ] Belum dieksekusi (menunggu persetujuan klien).
+
+<!-- ============================================================
+     PEMBAHASAN UX RAPOR WALI MURID — 13 Agust 2026
+     ============================================================ -->
+
+## Pembahasan Rapor Wali Murid (disetujui)
+
+### Temuan
+- Rapor dihitung **otomatis** dari nilai yang diisi guru pengampu/admin (menu *Nilai*) × bobot komponen Tugas/PH/UTS/UAS (`score_components`, dikonfigurasi admin di *Bobot Nilai*). Tidak ada entri khusus rapor.
+- Data DB saat ini: 72 nilai untuk 9/9 siswa, seluruhnya di TA **2025/2026 ganjil**; komponen bobot ada untuk ganjil & genap. Jadi semua siswa punya rapor untuk ganjil 2025/2026.
+- **Akar masalah: wali murid tidak punya menu/akses Rapor.**
+  - Nav wali murid (`resources/views/layouts/app.blade.php:22-29`): tidak ada item Rapor.
+  - Dashboard wali (`resources/views/wali-murid/dashboard.blade.php`): hanya menampilkan siswa pertama tanpa tombol/link Rapor.
+  - Nav "E-Rapor" hanya untuk guru/admin; route `scores.rapor-preview` dilindungi `Gate::authorize('view', $student)` → wali murid 403.
+- Route rapor wali sebenarnya ada & berfungsi: `/app/wali-murid/rapor/{student}` (`routes/web.php:159`, name `wali-murid.rapor`) — tapi tidak pernah ditautkan.
+
+### Rencana (disetujui untuk dieksekusi)
+1. **Entry point**: tambah item nav "Rapor" (icon `assignment`) untuk role wali murid → `route('wali-murid.rapor', <siswa pertama>)`; tambah tombol "Lihat Rapor" di kartu profil siswa pada dashboard wali (sebaris dengan Surat Aktif / Surat).
+2. **Halaman `wali-murid/rapor.blade.php`**: tampilkan semua mapel kelas siswa dengan badge "Nilai belum diisi guru pengampu" untuk yang kosong; pesan kosong total lebih informatif; default dropdown tetap ganjil + 2025/2026.
+3. **Verifikasi**: `tests/Feature/ScoreTest.php` (policy rapor wali), `php artisan test --compact`, `npm run build`, cek manual mode wali murid.
+
+### Status
+- [ ] Belum dieksekusi.
+
+<!-- ============================================================
+     PEMBAHASAN REFACTOR ROUTING — 13 Agust 2026
+     ============================================================ -->
+
+## Refactor: Pindahkan Logika dari routes/web.php ke Controller (disetujui)
+
+### Temuan
+- `routes/web.php` = 826 baris dengan ±49 route closure berisi logika (CRUD siswa/mapel/jadwal/bobot, dashboard, absensi, users, rapor, profil). Ini menghambat:
+  - `php artisan route:cache` **tidak bisa** dijalankan (ada route closure) → wajib untuk produksi.
+  - Sulit dibaca/di-test (logika tidak reusable, tidak bisa unit-test langsung).
+- Pola benar sudah ada: `ClassroomController`/`SubjectController` memakai metode `webIndex/webCreate/webStore/webEdit/webUpdate/webDestroy` untuk halaman + metode JSON untuk API.
+- `StudentController`, `TeacherSubjectController`, `ScheduleController`, `ScoreComponentController` hanya punya metode API (dipakai `routes/api.php`) → logika web diduplikasi di closure. API tidak boleh diubah; hanya tambah metode `web*`.
+
+### Rencana (disetujui untuk dieksekusi)
+1. **Controller baru**: `HomeController` (redirect `/` & `/login` by role), `ProfileController`, `WaliMuridController` (dashboard + rapor), `DashboardController` (guru), `AdminController` (admin dashboard), `UserController` (index/reset-password/toggle-active/password-reveal), `ActivityLogController`.
+2. **Tambah metode `web*`** ke existing controller (isi = logika closure di-copy verbatim): `StudentController` (+8), `TeacherSubjectController` (+6), `ScheduleController` (guru: `webIndex`/`webMobile`; admin CRUD `webAdminIndex`+5), `ScoreComponentController` (+6), `AttendanceController` (`webIndex`/`webForm`/`webRealtime`), `TeacherAttendanceController` (`webForm`/`webIndex`/`webAdminIndex`), `ScoreController` (`webCreate`/`webRaporPreview`).
+3. **`routes/web.php`**: ganti semua closure → `[Controller::class, 'method']`; pertahankan middleware & throttle; hapus `use` tidak terpakai. Target ±330 baris murni routing.
+4. **Bonus (opsional)**: dedupe query jadwal `->unique(fn...)` yang diulang 4×.
+5. **Verifikasi**: `php artisan route:list` (nama/URI identik), `php artisan route:cache` harus berhasil, `php artisan test --compact` (137 test), `vendor/bin/pint --format agent`, smoke test manual.
+
+### Status
+- [ ] Belum dieksekusi.
+
+
+Konten yang akan ditambahkan:
+<!-- ============================================================
+     PEMBAHASAN BAYAR SPP ONLINE WALI MURID — 14 Agust 2026
+     ============================================================ -->
+
+## Pembayaran SPP Online Wali Murid (disetujui)
+
+### Temuan
+- Wali murid saat ini TIDAK bisa membayar SPP digital; tidak ada tombol "Bayar Online" aktif:
+  - `spp/index.blade.php:75` — tombol Bayar/Batalkan hanya dirender untuk bendahara.
+  - `spp/payer.blade.php:127-132` — wali hanya lihat badge statis "Menunggu konfirmasi pembayaran".
+  - `POST /app/spp/bayar` (`markPaid`) dibungkus `role:bendahara` (`web.php:236`) → wali 403.
+- Bug lama yang diperbaiki (Opsi A): tombol "Bayar Sekarang" dashboard wali POST ke route GET `spp.index` (405) → jadi tautan ke `spp.payer`; `Carbon::day('Do MMMM YYYY')` (500) → `isoFormat()`.
+- Tidak ada payment gateway terpasang (composer.json/config/env kosong). Klien belum punya akun merchant.
+
+### Keputusan klien (14 Agust 2026)
+- Alur: **upload bukti + verifikasi bendahara** (bukan integrasi gateway sungguhan).
+- Bukti transfer/QRIS **wajib** diunggah wali.
+- Bulan pembayaran dikunci ke **bulan berjalan** saja.
+- Check-and-balance tetap: hanya bendahara yang mencatat lunas (membuat kwitansi) — wali hanya mengajukan.
+
+### Rencana (disetujui untuk dieksekusi)
+1. **Migration + model baru `PaymentSubmission`** (`payment_submissions`): student_id, month, year, amount, method, reference, proof_path, note, status (pending/approved/rejected), submitted_by, reviewed_by, reviewed_at, reject_reason; unique [student_id, month, year].
+2. **`StorePaymentSubmissionRequest`**: validasi method valid, bukti wajib, bulan = bulan berjalan.
+3. **`SPPController`**: `submitProof` (wali), `submissionsIndex` (bendahara), `approveSubmission` (buat `PaymentReceipt` via `ReceiptNumberService` + set `StudentFee.is_paid`, dalam `DB::transaction` + `ActivityLogger`), `rejectSubmission` (status rejected + alasan, tanpa kwitansi).
+4. **Routes**: `POST /app/spp/bukti` (wali), `GET /app/bendahara/verifikasi` + `POST /{submission}/setujui` + `POST /{submission}/tolak` (bendahara).
+5. **Views**: `spp/payer.blade.php` (form upload + panel status submission), `wali-murid/dashboard.blade.php` (badge "Menunggu Verifikasi"), baru `bendahara/submissions.blade.php` (antrian + lihat bukti + setujui/tolak), dashboard bendahara badge "X bukti menunggu".
+6. **Config**: `config/school.php` berisi rekening/QRIS resmi (tujuan transfer, diisi ulang sesuai akun madrasah).
+7. **Test**: `tests/Feature/SPPTest.php` +8 test (submit valid, ownership guard, duplikat, approve→kwitansi, reject, 403 role lain).
+
+### Status
+- [ ] Belum dieksekusi.
+Catatan: blok diskusi sebelumnya di AGENTS.md memang berada di dalam tag <laravel-boost-guidelines> (baris 173–241 sebenarnya sudah di luar tag penutup 171? — cek: tag ditutup di baris 171, blok diskusi ada setelahnya, jadi saya append di paling akhir file, konsisten).
+Setujui untuk saya tulis blok ini ke AGENTS.md? (Saya masih di plan mode, tidak akan mengeksekusi sebelum Anda konfirmasi.)
+</laravel-boost-guidelines>

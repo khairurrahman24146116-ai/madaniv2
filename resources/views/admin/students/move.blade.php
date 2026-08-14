@@ -11,7 +11,7 @@
 />
 
 <x-card variant="default" padding="lg" class="max-w-2xl">
-    <div class="mb-lg p-md bg-blue-50 text-blue-800 rounded-xl text-[14px] flex items-start gap-3 border border-blue-200">
+    <div class="mb-6 p-4 bg-secondary-fixed/40 text-on-secondary-fixed-variant rounded-xl text-[14px] flex items-start gap-3 border border-secondary/30">
         <span class="material-symbols-outlined text-[20px] mt-0.5 shrink-0">info</span>
         <div>
             <p class="font-semibold">Kelas saat ini: {{ $student->classroom->name ?? '-' }}</p>
@@ -21,9 +21,9 @@
 
     <form action="{{ route('admin.students.move', $student) }}" method="POST">
         @csrf
-        <div class="space-y-md">
+        <div class="space-y-4">
             <div>
-                <label class="block text-label-md text-on-surface-variant mb-xs">KELAS TUJUAN</label>
+                <label class="block text-label-md text-on-surface-variant mb-1">KELAS TUJUAN</label>
                 <select name="classroom_id" required class="w-full rounded-lg border border-outline-variant bg-surface-bright text-on-surface px-4 py-3 text-body-md outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors">
                     <option value="">Pilih kelas</option>
                     @foreach($classrooms as $c)
@@ -32,7 +32,7 @@
                 </select>
                 @error('classroom_id')<p class="text-error text-caption mt-1">{{ $message }}</p>@enderror
             </div>
-            <div class="flex gap-md pt-md border-t border-outline-variant">
+            <div class="flex gap-4 pt-4 border-t border-outline-variant">
                 <x-button variant="primary" type="submit" icon="swap_horiz">Pindahkan</x-button>
                 <x-button variant="outline" href="{{ route('admin.students.index') }}">Batal</x-button>
             </div>

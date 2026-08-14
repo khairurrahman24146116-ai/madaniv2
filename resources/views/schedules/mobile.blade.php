@@ -10,7 +10,7 @@
     ]"
 />
 
-<div class="flex flex-wrap gap-sm mb-lg">
+<div class="flex flex-wrap gap-2 mb-6">
     @foreach(['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu'] as $d)
         <a href="{{ route('schedules.mobile', ['day' => $d]) }}" class="px-4 py-2 rounded-lg text-label-md font-medium transition-colors @if($d === $currentDay) bg-primary text-on-primary @else bg-surface-container-high text-on-surface-variant @endif">
             {{ ucfirst($d) }}
@@ -18,12 +18,12 @@
     @endforeach
 </div>
 
-<div class="space-y-md">
+<div class="space-y-4">
     @forelse($schedules ?? [] as $schedule)
         <x-schedule-card :schedule="$schedule" variant="mobile" />
     @empty
         <x-card variant="default" padding="md" class="text-center">
-            <h4 class="text-headline-md text-on-surface mb-xs">Tidak ada jadwal pada hari ini</h4>
+            <h4 class="text-headline-md text-on-surface mb-1">Tidak ada jadwal pada hari ini</h4>
             <p class="text-body-md text-on-surface-variant">Jadwal sesi besok akan muncul di sini.</p>
         </x-card>
     @endforelse

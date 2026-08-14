@@ -18,9 +18,9 @@
     
     $componentColors = [
         'tugas' => 'border-primary/30 focus:border-primary focus:ring-primary/25',
-        'ph' => 'border-blue-300 focus:border-blue-500 focus:ring-blue-500/25',
-        'uts' => 'border-amber-300 focus:border-amber-500 focus:ring-amber-500/25',
-        'uas' => 'border-red-300 focus:border-red-500 focus:ring-red-500/25',
+        'ph' => 'border-secondary/40 focus:border-secondary focus:ring-secondary/25',
+        'uts' => 'border-warning/40 focus:border-warning focus:ring-warning/25',
+        'uas' => 'border-error/40 focus:border-error focus:ring-error/25',
     ];
     
     $colorClass = $componentColors[$component] ?? $componentColors['tugas'];
@@ -43,7 +43,7 @@
            inputmode="decimal">
     
     @if($value !== null && $value !== '')
-        <div class="absolute bottom-1 right-1 text-[10px] font-medium {{ $value >= 75 ? 'text-green-600' : 'text-red-600' }}">
+        <div class="absolute bottom-1 right-1 text-[10px] font-medium {{ $value >= 75 ? 'text-tertiary-container' : 'text-error' }}">
             {{ $value >= 75 ? '✓' : '✗' }}
         </div>
     @endif

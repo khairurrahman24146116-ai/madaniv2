@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\View\View;
 
 class TeacherAttendanceController extends Controller
 {
@@ -335,5 +336,62 @@ class TeacherAttendanceController extends Controller
         if ($attendance->user_id !== $user->id) {
             abort(403, 'Anda tidak memiliki akses ke data absensi ini');
         }
+    }
+
+    /**
+     * Web (guru): form absensi guru & check-in/check-out.
+     */
+    public function webForm(): View
+    {
+        $schedules = Schedule::with('teacherSubject.subject', 'teacherSubject.classroom')
+            ->when(! auth()->user()->isAdmin(), fn ($query) => $query->whereHas('teacherSubject', fn ($q) => $q->where('user_id', auth()->id())))
+            ->get()
+            ->unique(fn ($schedule) => implode('|', [$schedule->day, $schedule->start_time, $schedule->teacher_subject_id]));
+        $todayAttendance = TeacherAttendance::where('user_id', auth()->id())
+            ->where('date', now()->format('Y-m-d'))
+            ->first();
+
+        return view('teacher-attendances.form', compact('schedules', 'todayAttendance'));
+    }
+
+    /**
+     * Web (guru): riwayat absensi guru.
+     */
+    public function webIndex(): View
+    {
+        $attendances = TeacherAttendance::with('user', 'schedule.teacherSubject.subject')
+            ->where('user_id', auth()->id())
+            ->orderBy('date', 'desc')
+            ->paginate(50);
+
+        return view('teacher-attendances.index', compact('attendances'));
+    }
+
+    /**
+     * Web (admin): rekap absensi guru hari ini & riwayat.
+     */
+    public function webAdminIndex(Request $request): View
+    {
+        $today = now()->format('Y-m-d');
+        $date = $request->get('date', $today);
+
+        $query = TeacherAttendance::with('user', 'schedule.teacherSubject.subject')
+            ->when($request->get('date'), fn ($q) => $q->where('date', $request->get('date')))
+            ->when($request->get('user_id'), fn ($q) => $q->where('user_id', $request->get('user_id')))
+            ->when($request->get('status'), fn ($q) => $q->where('status', $request->get('status')));
+
+        $attendances = $query->orderBy('date', 'desc')->orderBy('check_in', 'desc')->paginate(50);
+
+        $gurus = User::where('role', 'guru')->orderBy('name')->get();
+
+        $todayAttendances = TeacherAttendance::where('date', $today)->select('status')->get();
+        $totalGuru = $gurus->count();
+        $hadir = $todayAttendances->where('status', 'H')->count();
+        $sakit = $todayAttendances->where('status', 'S')->count();
+        $izin = $todayAttendances->where('status', 'I')->count();
+        $alpa = $todayAttendances->where('status', 'A')->count();
+        $belumAbsen = $totalGuru - $todayAttendances->count();
+
+        return view('admin.teacher-attendances.index', compact('attendances', 'gurus', 'today', 'totalGuru', 'hadir', 'sakit', 'izin', 'alpa', 'belumAbsen'));
     }
 }

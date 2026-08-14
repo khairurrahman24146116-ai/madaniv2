@@ -67,6 +67,7 @@ class AuthController extends Controller
 
             $redirectRoute = match (true) {
                 $user->isWaliMurid() => 'wali-murid.dashboard',
+                $user->isBendahara() => 'bendahara.dashboard',
                 $user->isAdmin() => 'admin.dashboard',
                 default => 'dashboard',
             };

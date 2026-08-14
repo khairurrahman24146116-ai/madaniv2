@@ -2,9 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreScoreComponentRequest;
+use App\Http\Requests\UpdateScoreComponentRequest;
 use App\Models\ScoreComponent;
+use App\Models\Subject;
+use App\Services\ActivityLogger;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 /**
  * Controller ScoreComponent — Konfigurasi bobot komponen penilaian (Admin).
@@ -148,5 +154,71 @@ class ScoreComponentController extends Controller
             'success' => true,
             'message' => 'Bobot komponen berhasil dihapus',
         ]);
+    }
+
+    /**
+     * Web (admin): daftar bobot komponen nilai.
+     */
+    public function webIndex(): View
+    {
+        $components = ScoreComponent::with('subject')->orderBy('subject_id')->paginate(50);
+
+        return view('admin.score-components.index', compact('components'));
+    }
+
+    /**
+     * Web (admin): form tambah bobot komponen.
+     */
+    public function webCreate(): View
+    {
+        $subjects = Subject::orderBy('name')->get();
+
+        return view('admin.score-components.create', compact('subjects'));
+    }
+
+    /**
+     * Web (admin): simpan bobot komponen baru.
+     */
+    public function webStore(StoreScoreComponentRequest $request): RedirectResponse
+    {
+        $data = $request->validated();
+        ScoreComponent::create($data);
+        ActivityLogger::log('create', 'Menambahkan bobot nilai: '.$data['name'].' ('.$data['code'].')');
+
+        return redirect()->route('admin.score-components.index')->with('success', 'Bobot nilai berhasil ditambahkan');
+    }
+
+    /**
+     * Web (admin): form edit bobot komponen.
+     */
+    public function webEdit(ScoreComponent $scoreComponent): View
+    {
+        $subjects = Subject::orderBy('name')->get();
+
+        return view('admin.score-components.edit', compact('scoreComponent', 'subjects'));
+    }
+
+    /**
+     * Web (admin): perbarui bobot komponen.
+     */
+    public function webUpdate(UpdateScoreComponentRequest $request, ScoreComponent $scoreComponent): RedirectResponse
+    {
+        $data = $request->validated();
+        $scoreComponent->update($data);
+        ActivityLogger::log('update', 'Mengubah bobot nilai: '.$data['name'], $scoreComponent);
+
+        return redirect()->route('admin.score-components.index')->with('success', 'Bobot nilai berhasil diperbarui');
+    }
+
+    /**
+     * Web (admin): hapus bobot komponen.
+     */
+    public function webDestroy(ScoreComponent $scoreComponent): RedirectResponse
+    {
+        $name = $scoreComponent->name;
+        $scoreComponent->delete();
+        ActivityLogger::log('delete', 'Menghapus bobot nilai: '.$name);
+
+        return redirect()->route('admin.score-components.index')->with('success', 'Bobot nilai berhasil dihapus');
     }
 }

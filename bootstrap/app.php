@@ -42,6 +42,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => CheckRole::class,
             'password.changed' => EnsurePasswordChanged::class,
         ]);
+
+        $middleware->throttleApi();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

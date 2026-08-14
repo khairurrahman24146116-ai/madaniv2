@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
@@ -391,5 +392,56 @@ class AttendanceController extends Controller
         $hour = (int) now()->setTimezone('Asia/Jakarta')->format('H');
 
         return $hour >= 14 && $hour < 16;
+    }
+
+    /**
+     * Web (guru): riwayat absensi siswa.
+     */
+    public function webIndex(): View
+    {
+        $attendances = Attendance::with('student', 'schedule.teacherSubject.subject', 'schedule.teacherSubject.classroom')
+            ->orderBy('date', 'desc')->paginate(20);
+
+        return view('attendances.index', compact('attendances'));
+    }
+
+    /**
+     * Web (guru): form absensi siswa per jadwal.
+     */
+    public function webForm(): View
+    {
+        $user = auth()->user();
+
+        TeacherAttendanceController::autoAttendIfWithinSoreHours($user);
+
+        $schedules = Schedule::with('teacherSubject.subject', 'teacherSubject.classroom')
+            ->when(! $user->isAdmin(), fn ($query) => $query->whereHas('teacherSubject', fn ($q) => $q->where('user_id', $user->id)))
+            ->get()
+            ->unique(fn ($schedule) => implode('|', [$schedule->day, $schedule->start_time, $schedule->teacher_subject_id]));
+        $scheduleId = request('schedule_id', $schedules->first()?->id);
+        $date = request('date', now()->format('Y-m-d'));
+        $schedule = $schedules->firstWhere('id', $scheduleId);
+        $students = $schedule?->teacherSubject->classroom->students ?? collect();
+        $canEdit = $user->isAdmin() || self::isWithinSoreHours();
+
+        return view('attendances.form', compact('schedules', 'schedule', 'students', 'date', 'canEdit'));
+    }
+
+    /**
+     * Web (guru): halaman absensi realtime.
+     */
+    public function webRealtime(): View
+    {
+        $schedules = Schedule::with('teacherSubject.subject', 'teacherSubject.classroom')
+            ->when(! auth()->user()->isAdmin(), fn ($query) => $query->whereHas('teacherSubject', fn ($q) => $q->where('user_id', auth()->id())))
+            ->get()
+            ->unique(fn ($schedule) => implode('|', [$schedule->day, $schedule->start_time, $schedule->teacher_subject_id]));
+        $scheduleId = request('schedule_id', $schedules->first()?->id);
+        $date = request('date', now()->format('Y-m-d'));
+        $schedule = $schedules->firstWhere('id', $scheduleId);
+        $students = $schedule?->teacherSubject->classroom->students ?? collect();
+        $canEdit = auth()->user()->isAdmin() || self::isWithinSoreHours();
+
+        return view('attendances.realtime', compact('schedules', 'schedule', 'students', 'date', 'canEdit'));
     }
 }

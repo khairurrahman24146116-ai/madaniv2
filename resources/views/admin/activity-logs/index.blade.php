@@ -7,10 +7,10 @@
     icon="history"
 />
 
-<div class="mb-lg bg-surface-container-low rounded-xl p-md border border-outline-variant flex flex-wrap gap-md items-center">
-    <form method="GET" action="{{ route('admin.activity-logs.index') }}" class="flex flex-wrap gap-md items-end w-full">
+<div class="mb-6 bg-surface-container-low rounded-xl p-4 border border-outline-variant flex flex-wrap gap-4 items-center">
+    <form method="GET" action="{{ route('admin.activity-logs.index') }}" class="flex flex-wrap gap-4 items-end w-full">
         <div>
-            <label class="text-caption text-on-surface-variant block mb-xs">ACTION</label>
+            <label class="text-caption text-on-surface-variant block mb-1">ACTION</label>
             <select name="action" class="rounded-lg border-outline-variant bg-surface-bright text-on-surface py-2 px-3 text-body-md" onchange="this.form.submit()">
                 <option value="">Semua</option>
                 <option value="login" @selected(request('action') === 'login')>Login</option>
@@ -21,7 +21,7 @@
             </select>
         </div>
         <div>
-            <label class="text-caption text-on-surface-variant block mb-xs">USER</label>
+            <label class="text-caption text-on-surface-variant block mb-1">USER</label>
             <select name="user_id" class="rounded-lg border-outline-variant bg-surface-bright text-on-surface py-2 px-3 text-body-md" onchange="this.form.submit()">
                 <option value="">Semua</option>
                 @foreach(\App\Models\User::orderBy('name')->get() as $u)
@@ -41,19 +41,19 @@
         <table class="w-full min-w-[720px] text-left border-collapse">
             <thead>
                 <tr class="bg-surface-container-low border-b border-outline-variant">
-                    <th class="px-md py-4 text-label-md text-on-surface-variant">WAKTU</th>
-                    <th class="px-md py-4 text-label-md text-on-surface-variant">USER</th>
-                    <th class="px-md py-4 text-label-md text-on-surface-variant">ACTION</th>
-                    <th class="px-md py-4 text-label-md text-on-surface-variant">DESKRIPSI</th>
-                    <th class="px-md py-4 text-label-md text-on-surface-variant">IP</th>
+                    <th class="px-4 py-4 text-label-md text-on-surface-variant">WAKTU</th>
+                    <th class="px-4 py-4 text-label-md text-on-surface-variant">USER</th>
+                    <th class="px-4 py-4 text-label-md text-on-surface-variant">ACTION</th>
+                    <th class="px-4 py-4 text-label-md text-on-surface-variant">DESKRIPSI</th>
+                    <th class="px-4 py-4 text-label-md text-on-surface-variant">IP</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-outline-variant">
                 @forelse($logs as $log)
                 <tr class="hover:bg-surface-container-low transition-colors">
-                    <td class="px-md py-4 text-body-md text-on-surface tabular-nums whitespace-nowrap">{{ $log->created_at->format('d M H:i') }}</td>
-                    <td class="px-md py-4">
-                        <div class="flex items-center gap-sm">
+                    <td class="px-4 py-4 text-body-md text-on-surface tabular-nums whitespace-nowrap">{{ $log->created_at->format('d M H:i') }}</td>
+                    <td class="px-4 py-4">
+                        <div class="flex items-center gap-2">
                             <div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-label-md text-on-surface-variant font-bold">
                                 {{ strtoupper(substr($log->user?->name ?? '?', 0, 1)) }}
                             </div>
@@ -63,14 +63,14 @@
                             </div>
                         </div>
                     </td>
-                    <td class="px-md py-4">
+                    <td class="px-4 py-4">
                         @php
                         $colors = [
-                            'login' => 'bg-blue-100 text-blue-700',
-                            'logout' => 'bg-gray-100 text-gray-700',
-                            'create' => 'bg-green-100 text-green-700',
-                            'update' => 'bg-amber-100 text-amber-700',
-                            'delete' => 'bg-red-100 text-red-700',
+                            'login' => 'bg-secondary-fixed/60 text-secondary',
+                            'logout' => 'bg-surface-container-high text-on-surface-variant',
+                            'create' => 'bg-tertiary-fixed/40 text-tertiary-container',
+                            'update' => 'bg-warning-container/60 text-warning',
+                            'delete' => 'bg-error-container/60 text-error',
                         ];
                         $labels = [
                             'login' => 'Login',
@@ -80,17 +80,17 @@
                             'delete' => 'Hapus',
                         ];
                         @endphp
-                        <span class="px-3 py-1 rounded-full text-xs font-semibold {{ $colors[$log->action] ?? 'bg-gray-100 text-gray-700' }}">
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold {{ $colors[$log->action] ?? 'bg-surface-container-high text-on-surface-variant' }}">
                             {{ $labels[$log->action] ?? $log->action }}
                         </span>
                     </td>
-                    <td class="px-md py-4 text-body-md text-on-surface">{{ $log->description }}</td>
-                    <td class="px-md py-4 text-body-md text-on-surface-variant font-mono text-xs">{{ $log->ip_address ?? '-' }}</td>
+                    <td class="px-4 py-4 text-body-md text-on-surface">{{ $log->description }}</td>
+                    <td class="px-4 py-4 text-body-md text-on-surface-variant font-mono text-xs">{{ $log->ip_address ?? '-' }}</td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="5" class="px-md py-xl text-center text-on-surface-variant">
-                        <span class="material-symbols-outlined text-4xl mb-md block">history</span>
+                    <td colspan="5" class="px-4 py-8 text-center text-on-surface-variant">
+                        <span class="material-symbols-outlined text-4xl mb-4 block">history</span>
                         <p>Belum ada aktivitas tercatat.</p>
                     </td>
                 </tr>
@@ -100,7 +100,7 @@
     </div>
 </x-card>
 
-<div class="mt-lg">
+<div class="mt-6">
     {{ $logs->links() }}
 </div>
 @endsection

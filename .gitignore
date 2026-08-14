@@ -26,6 +26,10 @@
 /storage/pail
 /vendor
 _ide_helper.php
+stitch_sistem_absensi_dan_jadwal/
+stitch_siakad_madani_material_redesign/
+DESIGN 4.md
+intruksi_task_redesign.md
 Homestead.json
 Homestead.yaml
 Thumbs.db
@@ -34,5 +38,9 @@ Thumbs.db
 Deploy.md
 agent.md
 flowchart.md
+.opencode/
+_ops/
+madani-al-aziziyah/
+query
 
 

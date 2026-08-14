@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="light" lang="id">
+<html lang="id">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,181 +11,116 @@
 </head>
 <body class="bg-background text-on-surface font-sans antialiased min-h-screen">
     @auth
-    {{-- TopAppBar --}}
-    <header class="w-full top-0 sticky bg-surface border-b border-outline-variant z-50">
-        <div class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-sm max-w-[1440px] mx-auto">
-            <div class="flex items-center gap-md">
-                <a href="{{ route('dashboard') }}" class="flex items-center gap-sm">
-                    <span class="w-9 h-9 bg-primary text-on-primary rounded-md flex items-center justify-center material-symbols-outlined">school</span>
-                    <div>
-                        <h1 class="text-headline-lg-mobile md:text-headline-lg font-bold text-on-surface leading-none">Madani Al-Aziziyah</h1>
-                        <p class="hidden sm:block text-caption text-on-surface-variant mt-1">SMA Sore Dayah Madani</p>
-                    </div>
-                </a>
-            </div>
-            <div class="flex items-center gap-sm md:gap-md">
-                <span class="text-label-md text-on-surface-variant hidden md:block">{{ auth()->user()->name }}</span>
-                <button id="dark-toggle" class="p-sm hover:bg-surface-container-high rounded-md transition-colors" title="Ubah tema" aria-label="Ubah tema">
-                    <span class="material-symbols-outlined text-on-surface-variant" id="theme-icon">dark_mode</span>
-                </button>
-                <div class="relative">
-                    <button id="user-menu-toggle" type="button" class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-bold border border-outline-variant overflow-hidden hover:ring-2 hover:ring-primary/40 transition-shadow" aria-label="Menu pengguna" aria-haspopup="true" aria-expanded="false">
-                        @if(auth()->user()->profile_photo_url)
-                            <img src="{{ auth()->user()->profile_photo_url }}" alt="" class="w-full h-full object-cover">
-                        @else
-                            <span>{{ substr(auth()->user()->name, 0, 1) }}</span>
-                        @endif
-                    </button>
-                    <div id="user-menu" class="hidden absolute right-0 mt-2 w-56 bg-surface-container-lowest border border-outline-variant rounded-lg shadow-lg overflow-hidden">
-                        <div class="px-md py-sm border-b border-outline-variant">
-                            <p class="text-label-md font-semibold text-on-surface truncate">{{ auth()->user()->name }}</p>
-                            <p class="text-caption text-on-surface-variant truncate">{{ auth()->user()->email }}</p>
-                        </div>
-                        <a href="{{ route('profile.edit') }}" class="flex items-center gap-md w-full px-md py-sm text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-colors">
-                            <span class="material-symbols-outlined text-[20px]">person</span>
-                            <span class="text-label-md">Profil</span>
-                        </a>
-                        <form method="POST" action="{{ route('auth.logout.web') }}">
-                            @csrf
-                            <button type="submit" class="flex items-center gap-md w-full px-md py-sm text-on-surface-variant hover:bg-surface-container-high hover:text-error transition-colors">
-                                <span class="material-symbols-outlined text-[20px]">logout</span>
-                                <span class="text-label-md">Logout</span>
-                            </button>
-                        </form>
-                    </div>
-                </div>
-                <button id="hamburger-toggle" type="button" class="lg:hidden p-sm hover:bg-surface-container-high rounded-md transition-colors" aria-label="Buka menu" aria-expanded="false">
-                    <span class="material-symbols-outlined text-on-surface-variant text-2xl">menu</span>
-                </button>
-            </div>
-        </div>
-    </header>
-
-    {{-- SideNavBar (desktop) --}}
-    <aside class="hidden lg:flex h-[calc(100vh-64px)] w-64 flex-col bg-surface-container-low border-r border-outline-variant fixed left-0 top-16 z-40 overflow-y-auto">
-        <nav class="flex-1 space-y-xs py-md">
-            @if(auth()->user()->isWaliMurid())
-            <x-nav-item href="{{ route('wali-murid.dashboard') }}" icon="dashboard" :active="request()->routeIs('wali-murid.dashboard')">Dashboard</x-nav-item>
-            <x-nav-item href="{{ route('active-letters.index') }}" icon="badge" :active="request()->routeIs('active-letters.*')">Surat Aktif</x-nav-item>
-            <x-nav-item href="{{ route('spp.index') }}" icon="payments" :active="request()->routeIs('spp.*')">SPP</x-nav-item>
-            <x-nav-item href="{{ route('wali.letters.index') }}" icon="description" :active="request()->routeIs('wali.letters.*')">Surat</x-nav-item>
-            <x-nav-item href="{{ route('wali.contact.index') }}" icon="mail" :active="request()->routeIs('wali.contact.*')">Hubungi Kepsek</x-nav-item>
-            <x-nav-item href="{{ route('wali.meetings.index') }}" icon="event" :active="request()->routeIs('wali.meetings.*')">Jadwal Pertemuan</x-nav-item>
-            @elseif(auth()->user()->isGuru())
-            <x-nav-item href="{{ route('dashboard') }}" icon="dashboard" :active="request()->routeIs('dashboard')">Dashboard</x-nav-item>
-            <x-nav-item href="{{ route('attendances.form') }}" icon="how_to_reg" :active="request()->routeIs('attendances.*')">Absensi Siswa</x-nav-item>
-            <x-nav-item href="{{ route('teacher.attendances.form') }}" icon="badge" :active="request()->routeIs('teacher.attendances.*')">Absensi Guru</x-nav-item>
-            <x-nav-item href="{{ route('teacher.attendances.index') }}" icon="history" :active="request()->routeIs('teacher.attendances.index')">Riwayat Absen Guru</x-nav-item>
-            <x-nav-item href="{{ route('schedules.index') }}" icon="calendar_month" :active="request()->routeIs('schedules.*')">Jadwal</x-nav-item>
-            <x-nav-item href="{{ route('scores.create') }}" icon="grade" :active="request()->routeIs('scores.*')">Nilai</x-nav-item>
-            <x-nav-item href="{{ route('scores.rapor-preview') }}" icon="assignment" :active="request()->routeIs('scores.rapor-preview')">E-Rapor</x-nav-item>
-            <x-nav-item href="{{ route('spp.index') }}" icon="payments" :active="request()->routeIs('spp.*')">SPP</x-nav-item>
-            <x-nav-item href="{{ route('guru.letters.index') }}" icon="description" :active="request()->routeIs('guru.letters.*')">Surat</x-nav-item>
-            @endif
-            @if(auth()->user()->isAdmin())
-            <div class="pt-md mt-md border-t border-outline-variant">
-                <p class="text-caption text-on-surface-variant px-lg pb-xs uppercase tracking-wider">Admin</p>
-                <x-nav-item href="{{ route('admin.dashboard') }}" icon="admin_panel_settings" :active="request()->routeIs('admin.dashboard')">Panel</x-nav-item>
-                <x-nav-item href="{{ route('admin.classrooms.index') }}" icon="meeting_room" :active="request()->routeIs('admin.classrooms.*')">Kelas</x-nav-item>
-                <x-nav-item href="{{ route('admin.subjects.index') }}" icon="book" :active="request()->routeIs('admin.subjects.*')">Mapel</x-nav-item>
-                <x-nav-item href="{{ route('admin.students.index') }}" icon="people" :active="request()->routeIs('admin.students.*')">Siswa</x-nav-item>
-                <x-nav-item href="{{ route('admin.teacher-subjects.index') }}" icon="assignment_ind" :active="request()->routeIs('admin.teacher-subjects.*')">Mapping</x-nav-item>
-                <x-nav-item href="{{ route('admin.schedules.index') }}" icon="calendar_month" :active="request()->routeIs('admin.schedules.*')">Jadwal</x-nav-item>
-                <x-nav-item href="{{ route('admin.teacher-attendances.index') }}" icon="badge" :active="request()->routeIs('admin.teacher-attendances.*')">Absensi Guru</x-nav-item>
-                <x-nav-item href="{{ route('admin.users.index') }}" icon="manage_accounts" :active="request()->routeIs('admin.users.*')">Pengguna</x-nav-item>
-                <x-nav-item href="{{ route('admin.score-components.index') }}" icon="tune" :active="request()->routeIs('admin.score-components.*')">Bobot Nilai</x-nav-item>
-                <x-nav-item href="{{ route('spp.index') }}" icon="payments" :active="request()->routeIs('spp.*')">SPP</x-nav-item>
-                <x-nav-item href="{{ route('admin.letters.index') }}" icon="description" :active="request()->routeIs('admin.letters.*')">Surat</x-nav-item>
-                <x-nav-item href="{{ route('admin.contact.index') }}" icon="mail" :active="request()->routeIs('admin.contact.*')">Pesan Masuk</x-nav-item>
-                <x-nav-item href="{{ route('admin.meetings.index') }}" icon="event" :active="request()->routeIs('admin.meetings.*')">Pertemuan</x-nav-item>
-                <x-nav-item href="{{ route('admin.activity-logs.index') }}" icon="history" :active="request()->routeIs('admin.activity-logs.*')">Log Aktivitas</x-nav-item>
-            </div>
-            @endif
-        </nav>
-        <div class="p-md mt-auto border-t border-outline-variant">
-            <form method="POST" action="{{ route('auth.logout.web') }}">
-                @csrf
-                <button type="submit" class="flex items-center gap-md px-sm text-on-surface-variant hover:text-error transition-colors w-full">
-                    <span class="material-symbols-outlined text-[20px]">logout</span>
-                    <span class="text-label-md">Logout</span>
-                </button>
-            </form>
-        </div>
-    </aside>
-
+    {{-- Top App Bar --}}
+    <x-top-app-bar />
+    
+    {{-- Navigation Data --}}
+    @php
+        $navItems = [];
+        
+        if (auth()->user()->isWaliMurid()) {
+            $firstStudentId = auth()->user()->students()->first()?->id;
+            $navItems = [
+                ['label' => 'Dashboard', 'icon' => 'dashboard', 'href' => route('wali-murid.dashboard'), 'activeRoutes' => ['wali-murid.dashboard']],
+                ['label' => 'Rapor', 'icon' => 'assignment', 'href' => $firstStudentId ? route('wali-murid.rapor', $firstStudentId) : route('wali-murid.dashboard'), 'activeRoutes' => ['wali-murid.rapor']],
+                ['label' => 'Surat Aktif', 'icon' => 'badge', 'href' => route('active-letters.index'), 'activeRoutes' => ['active-letters.*']],
+                ['label' => 'SPP', 'icon' => 'payments', 'href' => route('spp.index'), 'activeRoutes' => ['spp.*']],
+                ['label' => 'Surat', 'icon' => 'description', 'href' => route('wali.letters.index'), 'activeRoutes' => ['wali.letters.*']],
+                ['label' => 'Hubungi Kepsek', 'icon' => 'mail', 'href' => route('wali.contact.index'), 'activeRoutes' => ['wali.contact.*']],
+                ['label' => 'Jadwal Pertemuan', 'icon' => 'event', 'href' => route('wali.meetings.index'), 'activeRoutes' => ['wali.meetings.*']],
+            ];
+        } elseif (auth()->user()->isBendahara()) {
+            $navItems = [
+                ['label' => 'Dashboard', 'icon' => 'dashboard', 'href' => route('bendahara.dashboard'), 'activeRoutes' => ['bendahara.dashboard']],
+                ['label' => 'SPP', 'icon' => 'payments', 'href' => route('spp.index'), 'activeRoutes' => ['spp.*']],
+                ['label' => 'Rekap', 'icon' => 'summarize', 'href' => route('bendahara.rekap'), 'activeRoutes' => ['bendahara.rekap']],
+            ];
+        } elseif (auth()->user()->isGuru()) {
+            $navItems = [
+                ['label' => 'Dashboard', 'icon' => 'dashboard', 'href' => route('dashboard'), 'activeRoutes' => ['dashboard']],
+                ['label' => 'Absensi Siswa', 'icon' => 'how_to_reg', 'href' => route('attendances.form'), 'activeRoutes' => ['attendances.*']],
+                ['label' => 'Absensi Guru', 'icon' => 'badge', 'href' => route('teacher.attendances.form'), 'activeRoutes' => ['teacher.attendances.*']],
+                ['label' => 'Riwayat Absen Guru', 'icon' => 'history', 'href' => route('teacher.attendances.index'), 'activeRoutes' => ['teacher.attendances.index']],
+                ['label' => 'Jadwal', 'icon' => 'calendar_month', 'href' => route('schedules.index'), 'activeRoutes' => ['schedules.*']],
+                ['label' => 'Nilai', 'icon' => 'grade', 'href' => route('scores.create'), 'activeRoutes' => ['scores.*']],
+                ['label' => 'E-Rapor', 'icon' => 'assignment', 'href' => route('scores.rapor-preview'), 'activeRoutes' => ['scores.rapor-preview']],
+                ['label' => 'SPP', 'icon' => 'payments', 'href' => route('spp.index'), 'activeRoutes' => ['spp.*']],
+                ['label' => 'Surat', 'icon' => 'description', 'href' => route('guru.letters.index'), 'activeRoutes' => ['guru.letters.*']],
+            ];
+        }
+        
+        $adminItems = [
+            ['divider' => true, 'label' => 'Admin'],
+            ['label' => 'Panel', 'icon' => 'admin_panel_settings', 'href' => route('admin.dashboard'), 'activeRoutes' => ['admin.dashboard']],
+            ['label' => 'Kelas', 'icon' => 'meeting_room', 'href' => route('admin.classrooms.index'), 'activeRoutes' => ['admin.classrooms.*']],
+            ['label' => 'Mapel', 'icon' => 'book', 'href' => route('admin.subjects.index'), 'activeRoutes' => ['admin.subjects.*']],
+            ['label' => 'Siswa', 'icon' => 'people', 'href' => route('admin.students.index'), 'activeRoutes' => ['admin.students.*']],
+            ['label' => 'Mapping', 'icon' => 'assignment_ind', 'href' => route('admin.teacher-subjects.index'), 'activeRoutes' => ['admin.teacher-subjects.*']],
+            ['label' => 'Jadwal', 'icon' => 'calendar_month', 'href' => route('admin.schedules.index'), 'activeRoutes' => ['admin.schedules.*']],
+            ['label' => 'Absensi Guru', 'icon' => 'badge', 'href' => route('admin.teacher-attendances.index'), 'activeRoutes' => ['admin.teacher-attendances.*']],
+            ['label' => 'Pengguna', 'icon' => 'manage_accounts', 'href' => route('admin.users.index'), 'activeRoutes' => ['admin.users.*']],
+            ['label' => 'Bobot Nilai', 'icon' => 'tune', 'href' => route('admin.score-components.index'), 'activeRoutes' => ['admin.score-components.*']],
+            ['label' => 'SPP', 'icon' => 'payments', 'href' => route('spp.index'), 'activeRoutes' => ['spp.*']],
+            ['label' => 'Surat', 'icon' => 'description', 'href' => route('admin.letters.index'), 'activeRoutes' => ['admin.letters.*']],
+            ['label' => 'Pesan Masuk', 'icon' => 'mail', 'href' => route('admin.contact.index'), 'activeRoutes' => ['admin.contact.*']],
+            ['label' => 'Pertemuan', 'icon' => 'event', 'href' => route('admin.meetings.index'), 'activeRoutes' => ['admin.meetings.*']],
+            ['label' => 'Log Aktivitas', 'icon' => 'history', 'href' => route('admin.activity-logs.index'), 'activeRoutes' => ['admin.activity-logs.*']],
+        ];
+        
+        if (auth()->user()->isAdmin()) {
+            $navItems = array_merge($navItems, $adminItems);
+        }
+        
+        $bottomNavItems = match (true) {
+            auth()->user()->isWaliMurid() => [
+                ['label' => 'Home', 'icon' => 'home', 'href' => route('wali-murid.dashboard'), 'activeRoutes' => ['wali-murid.dashboard']],
+                ['label' => 'SPP', 'icon' => 'payments', 'href' => route('spp.index'), 'activeRoutes' => ['spp.*']],
+                ['label' => 'Surat', 'icon' => 'grade', 'href' => route('wali.letters.index'), 'activeRoutes' => ['wali.letters.*', 'active-letters.*']],
+                ['label' => 'Profil', 'icon' => 'person', 'href' => route('profile.edit'), 'activeRoutes' => ['profile.*']],
+            ],
+            auth()->user()->isBendahara() => [
+                ['label' => 'Home', 'icon' => 'home', 'href' => route('bendahara.dashboard'), 'activeRoutes' => ['bendahara.dashboard']],
+                ['label' => 'SPP', 'icon' => 'payments', 'href' => route('spp.index'), 'activeRoutes' => ['spp.*']],
+                ['label' => 'Rekap', 'icon' => 'summarize', 'href' => route('bendahara.rekap'), 'activeRoutes' => ['bendahara.rekap']],
+                ['label' => 'Profil', 'icon' => 'person', 'href' => route('profile.edit'), 'activeRoutes' => ['profile.*']],
+            ],
+            auth()->user()->isAdmin() => [
+                ['label' => 'Home', 'icon' => 'home', 'href' => route('admin.dashboard'), 'activeRoutes' => ['admin.dashboard']],
+                ['label' => 'Jadwal', 'icon' => 'calendar_month', 'href' => route('admin.schedules.index'), 'activeRoutes' => ['admin.schedules.*']],
+                ['label' => 'Siswa', 'icon' => 'grade', 'href' => route('admin.students.index'), 'activeRoutes' => ['admin.students.*']],
+                ['label' => 'Profil', 'icon' => 'person', 'href' => route('profile.edit'), 'activeRoutes' => ['profile.*']],
+            ],
+            default => [
+                ['label' => 'Home', 'icon' => 'home', 'href' => route('dashboard'), 'activeRoutes' => ['dashboard']],
+                ['label' => 'Jadwal', 'icon' => 'calendar_month', 'href' => route('schedules.index'), 'activeRoutes' => ['schedules.*']],
+                ['label' => 'Nilai', 'icon' => 'grade', 'href' => route('scores.create'), 'activeRoutes' => ['scores.*']],
+                ['label' => 'Profil', 'icon' => 'person', 'href' => route('profile.edit'), 'activeRoutes' => ['profile.*']],
+            ],
+        };
+    @endphp
+    
+    {{-- Nav Rail (Desktop) --}}
+    <x-nav-rail :items="$navItems" />
+    
+    {{-- Bottom Nav (Mobile) --}}
+    <x-bottom-nav :items="$bottomNavItems" />
+    
     {{-- Main Content --}}
-    <main class="lg:ml-64 px-margin-mobile md:px-margin-desktop py-lg pb-lg max-w-7xl mx-auto">
+    <main class="md:ml-nav-rail-width px-margin-mobile md:px-margin-desktop py-6 pb-24 max-w-[var(--container-max)] mx-auto animate-fade-in">
         @yield('content')
     </main>
-
-    {{-- Hamburger Drawer (mobile) --}}
-    <div id="hamburger-drawer" class="lg:hidden fixed inset-0 z-50 hidden">
-        <div id="hamburger-overlay" class="absolute inset-0 bg-black/40"></div>
-        <div class="absolute left-0 top-0 h-full w-72 bg-surface-container-lowest shadow-xl border-r border-outline-variant overflow-y-auto">
-            <div class="flex items-center justify-between px-lg py-md border-b border-outline-variant">
-                <span class="text-headline-md font-bold text-on-surface">Menu</span>
-                <button id="hamburger-close" type="button" class="p-1 text-on-surface-variant hover:text-on-surface">
-                    <span class="material-symbols-outlined">close</span>
-                </button>
-            </div>
-            <nav class="py-md space-y-xs">
-                @if(auth()->user()->isWaliMurid())
-                    <x-nav-item href="{{ route('wali-murid.dashboard') }}" icon="dashboard" :active="request()->routeIs('wali-murid.dashboard')">Dashboard</x-nav-item>
-                    <x-nav-item href="{{ route('active-letters.index') }}" icon="badge" :active="request()->routeIs('active-letters.*')">Surat Aktif</x-nav-item>
-                    <x-nav-item href="{{ route('spp.index') }}" icon="payments" :active="request()->routeIs('spp.*')">SPP</x-nav-item>
-                    <x-nav-item href="{{ route('wali.letters.index') }}" icon="description" :active="request()->routeIs('wali.letters.*')">Surat</x-nav-item>
-                    <x-nav-item href="{{ route('wali.contact.index') }}" icon="mail" :active="request()->routeIs('wali.contact.*')">Hubungi Kepsek</x-nav-item>
-                    <x-nav-item href="{{ route('wali.meetings.index') }}" icon="event" :active="request()->routeIs('wali.meetings.*')">Jadwal Pertemuan</x-nav-item>
-                    <x-nav-item href="{{ auth()->user()->students->first() ? route('wali-murid.rapor', auth()->user()->students->first()) : '#' }}" icon="assignment" :active="request()->routeIs('wali-murid.rapor')">Rapor</x-nav-item>
-                @elseif(auth()->user()->isGuru())
-                    <x-nav-item href="{{ route('dashboard') }}" icon="dashboard" :active="request()->routeIs('dashboard')">Dashboard</x-nav-item>
-                    <x-nav-item href="{{ route('attendances.form') }}" icon="how_to_reg" :active="request()->routeIs('attendances.*')">Absensi Siswa</x-nav-item>
-                    <x-nav-item href="{{ route('teacher.attendances.form') }}" icon="badge" :active="request()->routeIs('teacher.attendances.*')">Absensi Guru</x-nav-item>
-                    <x-nav-item href="{{ route('teacher.attendances.index') }}" icon="history" :active="request()->routeIs('teacher.attendances.index')">Riwayat Absen Guru</x-nav-item>
-                    <x-nav-item href="{{ route('schedules.index') }}" icon="calendar_month" :active="request()->routeIs('schedules.*')">Jadwal</x-nav-item>
-                    <x-nav-item href="{{ route('scores.create') }}" icon="grade" :active="request()->routeIs('scores.*')">Nilai</x-nav-item>
-                    <x-nav-item href="{{ route('scores.rapor-preview') }}" icon="assignment" :active="request()->routeIs('scores.rapor-preview')">E-Rapor</x-nav-item>
-                    <x-nav-item href="{{ route('active-letters.index') }}" icon="badge" :active="request()->routeIs('active-letters.*')">Surat Aktif</x-nav-item>
-                    <x-nav-item href="{{ route('spp.index') }}" icon="payments" :active="request()->routeIs('spp.*')">SPP</x-nav-item>
-                    <x-nav-item href="{{ route('guru.letters.index') }}" icon="description" :active="request()->routeIs('guru.letters.*')">Surat</x-nav-item>
-                @endif
-                @if(auth()->user()->isAdmin())
-                    <div class="pt-md mt-md border-t border-outline-variant">
-                        <p class="text-caption text-on-surface-variant px-lg pb-xs uppercase tracking-wider">Admin</p>
-                        <x-nav-item href="{{ route('admin.dashboard') }}" icon="admin_panel_settings" :active="request()->routeIs('admin.dashboard')">Panel</x-nav-item>
-                        <x-nav-item href="{{ route('admin.classrooms.index') }}" icon="meeting_room" :active="request()->routeIs('admin.classrooms.*')">Kelas</x-nav-item>
-                        <x-nav-item href="{{ route('admin.subjects.index') }}" icon="book" :active="request()->routeIs('admin.subjects.*')">Mapel</x-nav-item>
-                        <x-nav-item href="{{ route('admin.students.index') }}" icon="people" :active="request()->routeIs('admin.students.*')">Siswa</x-nav-item>
-                        <x-nav-item href="{{ route('admin.teacher-subjects.index') }}" icon="assignment_ind" :active="request()->routeIs('admin.teacher-subjects.*')">Mapping</x-nav-item>
-                        <x-nav-item href="{{ route('admin.schedules.index') }}" icon="calendar_month" :active="request()->routeIs('admin.schedules.*')">Jadwal</x-nav-item>
-                        <x-nav-item href="{{ route('admin.teacher-attendances.index') }}" icon="badge" :active="request()->routeIs('admin.teacher-attendances.*')">Absensi Guru</x-nav-item>
-                        <x-nav-item href="{{ route('admin.users.index') }}" icon="manage_accounts" :active="request()->routeIs('admin.users.*')">Pengguna</x-nav-item>
-                        <x-nav-item href="{{ route('admin.score-components.index') }}" icon="tune" :active="request()->routeIs('admin.score-components.*')">Bobot Nilai</x-nav-item>
-                        <x-nav-item href="{{ route('active-letters.index') }}" icon="badge" :active="request()->routeIs('active-letters.*')">Surat Aktif</x-nav-item>
-                        <x-nav-item href="{{ route('spp.index') }}" icon="payments" :active="request()->routeIs('spp.*')">SPP</x-nav-item>
-                        <x-nav-item href="{{ route('admin.letters.index') }}" icon="description" :active="request()->routeIs('admin.letters.*')">Surat</x-nav-item>
-                        <x-nav-item href="{{ route('admin.contact.index') }}" icon="mail" :active="request()->routeIs('admin.contact.*')">Pesan Masuk</x-nav-item>
-                        <x-nav-item href="{{ route('admin.meetings.index') }}" icon="event" :active="request()->routeIs('admin.meetings.*')">Pertemuan</x-nav-item>
-                        <x-nav-item href="{{ route('admin.activity-logs.index') }}" icon="history" :active="request()->routeIs('admin.activity-logs.*')">Log Aktivitas</x-nav-item>
-                    </div>
-                @endif
-            </nav>
-            <div class="p-md border-t border-outline-variant">
-                <form method="POST" action="{{ route('auth.logout.web') }}">
-                    @csrf
-                    <button type="submit" class="flex items-center gap-md w-full px-sm py-2 text-on-surface-variant hover:text-error transition-colors">
-                        <span class="material-symbols-outlined text-[20px]">logout</span>
-                        <span class="text-label-md">Logout</span>
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
+    
+    {{-- Hamburger Drawer (Mobile) --}}
+    <x-hamburger-drawer :items="$navItems" />
+    
     @else
     <main class="min-h-screen flex items-center justify-center">
         @yield('content')
     </main>
     @endauth
+
+    <x-toast />
+    <x-confirm-modal />
 
     @stack('scripts')
 
@@ -195,6 +130,8 @@
             var drawer = document.getElementById('hamburger-drawer');
             var overlay = document.getElementById('hamburger-overlay');
             var close = document.getElementById('hamburger-close');
+            
+            // Hamburger drawer
             if (toggle && drawer) {
                 function openDrawer() {
                     drawer.classList.remove('hidden');
@@ -211,6 +148,24 @@
                 if (close) close.addEventListener('click', closeDrawer);
                 document.addEventListener('keydown', function(e) {
                     if (e.key === 'Escape') closeDrawer();
+                });
+            }
+            
+            // User menu dropdown
+            var userMenuToggle = document.getElementById('user-menu-toggle');
+            var userMenu = document.getElementById('user-menu');
+            if (userMenuToggle && userMenu) {
+                userMenuToggle.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    userMenu.classList.toggle('hidden');
+                    var expanded = !userMenu.classList.contains('hidden');
+                    userMenuToggle.setAttribute('aria-expanded', expanded);
+                });
+                document.addEventListener('click', function(e) {
+                    if (!userMenuToggle.contains(e.target) && !userMenu.contains(e.target)) {
+                        userMenu.classList.add('hidden');
+                        userMenuToggle.setAttribute('aria-expanded', 'false');
+                    }
                 });
             }
         })();

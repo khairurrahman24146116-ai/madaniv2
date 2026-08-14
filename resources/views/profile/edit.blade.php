@@ -7,25 +7,18 @@
     icon="person"
 />
 
-@if(session('success'))
-<div class="mb-lg p-md bg-green-50 text-green-800 rounded-xl text-[14px] flex items-start gap-3 border border-green-200">
-    <span class="material-symbols-outlined text-[20px] mt-0.5 shrink-0">check_circle</span>
-    <div>{{ session('success') }}</div>
-</div>
-@endif
-
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-lg">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     {{-- Photo Card --}}
     <x-card variant="default" padding="lg" class="lg:col-span-1">
         <div class="flex flex-col items-center text-center">
-            <div class="relative mb-md">
+            <div class="relative mb-4">
                 @if(auth()->user()->profile_photo_url)
                     <img src="{{ auth()->user()->profile_photo_url }}" 
                          alt="{{ auth()->user()->name }}"
-                         class="w-32 h-32 rounded-full object-cover border-4 border-green-100 shadow-md">
+                         class="w-32 h-32 rounded-full object-cover border-4 border-tertiary-fixed/60 shadow-md">
                 @else
-                    <div class="w-32 h-32 rounded-full bg-green-100 flex items-center justify-center border-4 border-green-100 shadow-md">
-                        <span class="text-4xl font-bold text-green-700">{{ substr(auth()->user()->name, 0, 1) }}</span>
+                    <div class="w-32 h-32 rounded-full bg-tertiary-fixed/40 flex items-center justify-center border-4 border-tertiary-fixed/60 shadow-md">
+                        <span class="text-4xl font-bold text-tertiary-container">{{ substr(auth()->user()->name, 0, 1) }}</span>
                     </div>
                 @endif
             </div>
@@ -39,7 +32,7 @@
     <x-card variant="default" padding="lg" class="lg:col-span-2">
         <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
             @csrf
-            <div class="space-y-md">
+            <div class="space-y-4">
                 <x-form-input type="text" name="name" label="Nama Lengkap" :value="auth()->user()->name" required :error="$errors->first('name')" />
 
                 <x-form-input type="email" name="email" label="Email" :value="auth()->user()->email" required :error="$errors->first('email')" />
@@ -57,7 +50,7 @@
                 </div>
                 @endif
 
-                <div class="flex gap-md pt-md border-t border-outline-variant">
+                <div class="flex gap-4 pt-4 border-t border-outline-variant">
                     <x-button variant="primary" type="submit" icon="save">Simpan Perubahan</x-button>
                 </div>
             </div>

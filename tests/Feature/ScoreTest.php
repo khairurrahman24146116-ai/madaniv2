@@ -8,6 +8,7 @@ use App\Models\Student;
 use App\Models\Subject;
 use App\Models\TeacherSubject;
 use App\Models\User;
+use App\Services\RaporService;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
@@ -183,6 +184,44 @@ class ScoreTest extends TestCase
         $response->assertStatus(403);
     }
 
+    public function test_wali_murid_can_view_own_child_rapor_page(): void
+    {
+        $student = Student::find(1);
+        $wali = $student->user;
+        $wali->update(['must_change_password' => false]);
+        Sanctum::actingAs($wali);
+
+        $this->get(route('wali-murid.rapor', $student))
+            ->assertOk()
+            ->assertSee($student->name)
+            ->assertSee('Nilai Akhir');
+    }
+
+    public function test_wali_murid_cannot_view_other_child_rapor_page(): void
+    {
+        $student = Student::find(1);
+        $wali = $student->user;
+        $wali->update(['must_change_password' => false]);
+        Sanctum::actingAs($wali);
+
+        $other = Student::find(2);
+
+        $this->get(route('wali-murid.rapor', $other))
+            ->assertForbidden();
+    }
+
+    public function test_wali_murid_rapor_page_shows_badge_for_subject_without_grades(): void
+    {
+        $student = Student::find(1);
+        $wali = $student->user;
+        $wali->update(['must_change_password' => false]);
+        Sanctum::actingAs($wali);
+
+        $this->get(route('wali-murid.rapor', $student).'?semester=genap&academic_year=2025/2026')
+            ->assertOk()
+            ->assertSee('Nilai belum diisi guru pengampu');
+    }
+
     public function test_guru_cannot_view_rapor_of_student_outside_taught_class(): void
     {
         $guru = User::where('email', 'ahmad@madani.id')->firstOrFail();
@@ -225,6 +264,28 @@ class ScoreTest extends TestCase
         $response->assertStatus(200);
         $response->assertHeader('Content-Type', 'application/pdf');
         $this->assertStringContainsString('rapor_1001_ganjil_2025-2026.pdf', $response->headers->get('Content-Disposition'));
+    }
+
+    public function test_rapor_pdf_signature_uses_school_name_not_framework_default(): void
+    {
+        $student = Student::with('classroom')->find(1);
+        $rapor = app(RaporService::class)->generate($student, 'ganjil', '2025/2026');
+
+        $html = view('pdf.rapor', [
+            'student' => $student,
+            'classroom' => $student->classroom,
+            'semester' => 'ganjil',
+            'academic_year' => '2025/2026',
+            'subjects' => $rapor['subjects'],
+            'overall_average' => $rapor['overall_average'],
+            'subjectCount' => collect($rapor['subjects'])->whereNotNull('final_grade')->count(),
+            'attendance' => ['total' => 0, 'H' => 0, 'S' => 0, 'I' => 0, 'A' => 0],
+            'generated_at' => now()->toDateTimeString(),
+            'verification_code' => 'TEST',
+        ])->render();
+
+        $this->assertStringContainsString('( SMA Dayah Madani Al-Aziziyah )', $html);
+        $this->assertStringNotContainsString('Laravel', $html);
     }
 
     public function test_guru_cannot_preview_rapor_of_student_outside_taught_class(): void

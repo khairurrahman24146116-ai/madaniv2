@@ -10,8 +10,8 @@
     ]"
 />
 
-<x-card variant="default" padding="lg" class="mb-lg">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-md mb-lg">
+<x-card variant="default" padding="lg" class="mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div>
             <p class="text-label-md text-on-surface-variant">PEMOHON</p>
             <p class="text-body-lg text-on-surface">{{ $meeting->user->name }}</p>
@@ -24,11 +24,11 @@
             <p class="text-label-md text-on-surface-variant">STATUS</p>
             <p class="text-body-lg">
                 @if($meeting->status === 'approved')
-                    <span class="text-green-700">Disetujui</span>
+                    <span class="text-tertiary-container">Disetujui</span>
                 @elseif($meeting->status === 'rejected')
-                    <span class="text-red-700">Ditolak</span>
+                    <span class="text-error">Ditolak</span>
                 @else
-                    <span class="text-amber-700">Menunggu</span>
+                    <span class="text-warning">Menunggu</span>
                 @endif
             </p>
         </div>
@@ -44,12 +44,12 @@
 </x-card>
 
 @if($meeting->status === 'pending')
-<div class="grid grid-cols-1 md:grid-cols-2 gap-lg">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
     <form action="{{ route('admin.meetings.approve', $meeting) }}" method="POST">
         @csrf
         <x-card variant="default" padding="lg">
-            <h3 class="text-headline-md text-on-surface mb-md">Setujui</h3>
-            <p class="text-body-md text-on-surface-variant mb-lg">Setujui pertemuan ini dan konfirmasi ke wali murid.</p>
+            <h3 class="text-headline-md text-on-surface mb-4">Setujui</h3>
+            <p class="text-body-md text-on-surface-variant mb-6">Setujui pertemuan ini dan konfirmasi ke wali murid.</p>
             <x-button variant="primary" type="submit" icon="check_circle">Setujui Pertemuan</x-button>
         </x-card>
     </form>
@@ -57,9 +57,9 @@
     <form action="{{ route('admin.meetings.reject', $meeting) }}" method="POST">
         @csrf
         <x-card variant="default" padding="lg">
-            <h3 class="text-headline-md text-on-surface mb-md">Tolak</h3>
-            <div class="mb-md">
-                <label class="text-label-md text-on-surface-variant block mb-xs">ALASAN PENOLAKAN</label>
+            <h3 class="text-headline-md text-on-surface mb-4">Tolak</h3>
+            <div class="mb-4">
+                <label class="text-label-md text-on-surface-variant block mb-1">ALASAN PENOLAKAN</label>
                 <textarea name="rejection_reason" rows="3" required class="rounded-lg border-outline-variant bg-surface-bright text-on-surface py-2 px-3 text-body-md w-full"></textarea>
             </div>
             <x-button variant="error" type="submit" icon="cancel">Tolak Pertemuan</x-button>

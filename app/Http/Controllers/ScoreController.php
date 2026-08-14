@@ -13,6 +13,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\View\View;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -24,16 +26,6 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class ScoreController extends Controller
 {
-    private function getTeacherSubjectIds(Request $request): ?array
-    {
-        $user = $request->user();
-        if ($user->isAdmin()) {
-            return null;
-        }
-
-        return $user->teacherSubjects()->pluck('subject_id')->unique()->values()->toArray();
-    }
-
     public function index(Request $request): JsonResponse
     {
         $query = Score::with(['student.user', 'subject', 'teacher']);
@@ -526,9 +518,21 @@ class ScoreController extends Controller
         $query = Score::with(['student.classroom', 'subject', 'teacher'])
             ->select(['student_id', 'subject_id', 'component_code', 'value', 'semester', 'academic_year', 'teacher_id', 'created_at']);
 
-        $subjectIds = $this->getTeacherSubjectIds($request);
-        if ($subjectIds !== null) {
-            $query->whereIn('subject_id', $subjectIds);
+        $user = $request->user();
+        if (! $user->isAdmin()) {
+            $mappings = $user->teacherSubjects()->get(['subject_id', 'classroom_id']);
+            if ($mappings->isEmpty()) {
+                $query->whereRaw('1 = 0');
+            } else {
+                $query->where(function ($query) use ($mappings) {
+                    foreach ($mappings as $mapping) {
+                        $query->orWhere(function ($query) use ($mapping) {
+                            $query->where('subject_id', $mapping->subject_id)
+                                ->whereHas('student', fn ($students) => $students->where('classroom_id', $mapping->classroom_id));
+                        });
+                    }
+                });
+            }
         }
 
         if ($request->has('subject_id')) {
@@ -692,5 +696,69 @@ class ScoreController extends Controller
         }
 
         return ["{$year2}-01-01", "{$year2}-06-30"];
+    }
+
+    /**
+     * Web (guru/admin): halaman input nilai batch per mapping guru-mapel-kelas.
+     */
+    public function webCreate(): View
+    {
+        $teacherSubjects = TeacherSubject::with(['subject', 'classroom'])
+            ->when(! auth()->user()->isAdmin(), fn ($query) => $query->where('user_id', auth()->id()))
+            ->orderBy('classroom_id')
+            ->get();
+        $selectedMapping = $teacherSubjects->firstWhere('id', request('teacher_subject_id')) ?? $teacherSubjects->first();
+        $students = $selectedMapping
+            ? Student::where('classroom_id', $selectedMapping->classroom_id)->where('is_active', true)->orderBy('name')->get()
+            : collect();
+
+        return view('scores.create', compact('teacherSubjects', 'selectedMapping', 'students'));
+    }
+
+    /**
+     * Web (guru/admin): pratinjau rapor seorang siswa.
+     */
+    public function webRaporPreview(): View
+    {
+        $studentId = request('student_id', Student::first()?->id);
+        $student = Student::with('classroom')->find($studentId);
+
+        Gate::authorize('view', $student);
+        $semester = request('semester', 'ganjil');
+        $academicYear = request('academic_year', '2025/2026');
+
+        $grades = collect();
+        if ($student) {
+            $raporService = app(RaporService::class);
+            $subjects = Subject::get();
+            $bulkGrades = $raporService->calculateGrades([$student->id], $subjects->pluck('id')->all(), $semester, $academicYear);
+
+            foreach ($subjects as $subject) {
+                $result = $bulkGrades[$student->id][$subject->id] ?? null;
+
+                if (! $result || $result['final_grade'] === null) {
+                    continue;
+                }
+
+                $grades->push([
+                    'subject' => $subject->name,
+                    'score' => $result['final_grade'],
+                    'kkm' => 70,
+                ]);
+            }
+
+            $attendanceStats = [
+                'H' => Attendance::where('student_id', $student->id)->where('status', 'H')->count(),
+                'S' => Attendance::where('student_id', $student->id)->where('status', 'S')->count(),
+                'I' => Attendance::where('student_id', $student->id)->where('status', 'I')->count(),
+                'A' => Attendance::where('student_id', $student->id)->where('status', 'A')->count(),
+            ];
+        } else {
+            $attendanceStats = ['H' => 0, 'S' => 0, 'I' => 0, 'A' => 0];
+        }
+
+        $gpa = $grades->isNotEmpty() ? round($grades->avg('score') / 25, 2) : null;
+
+        return view('scores.rapor-preview', compact('student', 'semester', 'academicYear', 'grades', 'attendanceStats', 'gpa'));
     }
 }

@@ -10,54 +10,46 @@
     ]"
 />
 
-@if(session('success'))
-<div class="mb-lg p-md bg-green-50 text-green-800 rounded-xl text-[14px] flex items-start gap-3 border border-green-200">
-    <span class="material-symbols-outlined text-[20px] mt-0.5 shrink-0">check_circle</span>
-    <div>{{ session('success') }}</div>
-</div>
-@endif
-
-@if(session('error'))
-<div class="mb-lg p-md bg-red-50 text-red-800 rounded-xl text-[14px] flex items-start gap-3 border border-red-200">
-    <span class="material-symbols-outlined text-[20px] mt-0.5 shrink-0">error</span>
-    <div>{{ session('error') }}</div>
-</div>
-@endif
-
 <x-card variant="default">
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
             <thead>
                 <tr class="bg-surface-container-high border-b border-outline-variant">
-                    <th class="px-lg py-md text-label-md text-on-surface-variant uppercase">Siswa</th>
-                    <th class="px-lg py-md text-label-md text-on-surface-variant uppercase">Kelas</th>
-                    <th class="px-lg py-md text-label-md text-on-surface-variant uppercase">Pengaju</th>
-                    <th class="px-lg py-md text-label-md text-on-surface-variant uppercase">Status</th>
-                    <th class="px-lg py-md text-label-md text-on-surface-variant uppercase text-right">Aksi</th>
+                    <th class="px-6 py-4 text-label-md text-on-surface-variant uppercase">Siswa</th>
+                    <th class="px-6 py-4 text-label-md text-on-surface-variant uppercase">Kelas</th>
+                    <th class="px-6 py-4 text-label-md text-on-surface-variant uppercase">Pengaju</th>
+                    <th class="px-6 py-4 text-label-md text-on-surface-variant uppercase">Status</th>
+                    <th class="px-6 py-4 text-label-md text-on-surface-variant uppercase text-right">Aksi</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-outline-variant">
                 @forelse($letters as $letter)
                 <tr class="hover:bg-surface-container-low transition-colors">
-                    <td class="px-lg py-md text-body-md text-on-surface font-semibold">{{ $letter->student->name }}</td>
-                    <td class="px-lg py-md text-body-md text-on-surface-variant">{{ $letter->student->classroom?->name ?? '-' }}</td>
-                    <td class="px-lg py-md text-body-md text-on-surface-variant">{{ $letter->teacher->name }}</td>
-                    <td class="px-lg py-md">
+                    <td class="px-6 py-4 text-body-md text-on-surface font-semibold">{{ $letter->student->name }}</td>
+                    <td class="px-6 py-4 text-body-md text-on-surface-variant">{{ $letter->student->classroom?->name ?? '-' }}</td>
+                    <td class="px-6 py-4 text-body-md text-on-surface-variant">{{ $letter->teacher->name }}</td>
+                    <td class="px-6 py-4">
                         @if($letter->status === 'selesai')
-                            <span class="text-green-700 text-label-md bg-green-50 px-sm py-0.5 rounded">Selesai</span>
+                            <span class="text-tertiary-container text-label-md bg-tertiary-fixed/40 px-2 py-0.5 rounded">Selesai</span>
                         @elseif($letter->status === 'diambil')
-                            <span class="text-blue-700 text-label-md bg-blue-50 px-sm py-0.5 rounded">Diambil</span>
+                            <span class="text-secondary text-label-md bg-secondary-fixed/40 px-2 py-0.5 rounded">Diambil</span>
                         @elseif($letter->status === 'ditolak')
-                            <span class="text-red-700 text-label-md bg-red-50 px-sm py-0.5 rounded">Ditolak</span>
+                            <span class="text-error text-label-md bg-error-container/50 px-2 py-0.5 rounded">Ditolak</span>
+                        @else
+                            <span class="text-warning text-label-md bg-warning-container/50 px-2 py-0.5 rounded">Dalam Proses</span>
                         @endif
                     </td>
-                    <td class="px-lg py-md text-right">
-                        <div class="flex items-center justify-end gap-sm">
+                    <td class="px-6 py-4 text-right">
+                        <div class="flex items-center justify-end gap-2">
                             <a href="{{ route('active-letters.show', $letter) }}" class="text-primary hover:underline text-label-md">Detail</a>
                             @if($letter->status === 'selesai')
-                                <form action="{{ route('active-letters.mark-taken', $letter) }}" method="POST" class="inline" onsubmit="return confirm('Tandai surat sudah diambil siswa?')">
+                                <form action="{{ route('active-letters.mark-taken', $letter) }}" method="POST" class="inline"
+                                    data-confirm="Tandai surat sudah diambil siswa?"
+                                    data-confirm-title="Tandai Diambil"
+                                    data-confirm-variant="info"
+                                    data-confirm-confirm-text="Ya, Tandai">
                                     @csrf
-                                    <button type="submit" class="text-blue-700 hover:underline text-label-md">Ambil</button>
+                                    <button type="submit" class="text-secondary hover:underline text-label-md">Ambil</button>
                                 </form>
                                 <a href="{{ route('active-letters.print', $letter) }}" class="text-primary hover:underline text-label-md">Cetak</a>
                             @endif
@@ -69,14 +61,14 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="5" class="text-center py-xl text-on-surface-variant">Belum ada pengajuan surat aktif.</td>
+                    <td colspan="5" class="text-center py-8 text-on-surface-variant">Belum ada pengajuan surat aktif.</td>
                 </tr>
                 @endforelse
             </tbody>
         </table>
     </div>
     @if(method_exists($letters, 'links'))
-    <div class="p-lg border-t border-outline-variant">{{ $letters->links() }}</div>
+    <div class="p-6 border-t border-outline-variant">{{ $letters->links() }}</div>
     @endif
 </x-card>
 @endsection

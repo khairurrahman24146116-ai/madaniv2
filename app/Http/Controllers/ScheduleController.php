@@ -2,10 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreScheduleRequest;
+use App\Http\Requests\UpdateScheduleRequest;
 use App\Models\Schedule;
 use App\Models\TeacherSubject;
+use App\Services\ActivityLogger;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 /**
  * Controller Schedule — CRUD jadwal pelajaran blok sore.
@@ -227,5 +232,107 @@ class ScheduleController extends Controller
             'success' => true,
             'data' => $schedules,
         ]);
+    }
+
+    /**
+     * Web (guru): jadwal semua kelas sebagai grid.
+     */
+    public function webIndex(): View
+    {
+        $schedules = Schedule::with('teacherSubject.subject', 'teacherSubject.classroom', 'teacherSubject.user')->get();
+        $scheduleGrid = $schedules->map(fn ($s) => [
+            'day' => $s->day,
+            'start_time' => $s->start_time,
+            'end_time' => $s->end_time,
+            'subject' => $s->teacherSubject->subject->name ?? '',
+            'teacher' => $s->teacherSubject->user->name ?? '',
+            'teacher_short' => substr($s->teacherSubject->user->name ?? '', 0, 10),
+            'room' => 'Ruang '.($s->hour_order + 1),
+        ]);
+
+        return view('schedules.index', compact('scheduleGrid'));
+    }
+
+    /**
+     * Web (guru): jadwal versi mobile per hari.
+     */
+    public function webMobile(): View
+    {
+        $day = request('day', now()->locale('id')->isoFormat('dddd'));
+        $currentDay = strtolower($day);
+        $schedules = Schedule::with('teacherSubject.subject', 'teacherSubject.classroom', 'teacherSubject.user')
+            ->where('day', $day)
+            ->orWhereNull('day')
+            ->get();
+
+        return view('schedules.mobile', compact('schedules', 'currentDay'));
+    }
+
+    /**
+     * Web (admin): daftar jadwal.
+     */
+    public function webAdminIndex(): View
+    {
+        $schedules = Schedule::with('teacherSubject.user', 'teacherSubject.subject', 'teacherSubject.classroom')
+            ->orderBy('day')->orderBy('hour_order')->paginate(50);
+
+        return view('admin.schedules.index', compact('schedules'));
+    }
+
+    /**
+     * Web (admin): form tambah jadwal.
+     */
+    public function webAdminCreate(): View
+    {
+        $mappings = TeacherSubject::with('user', 'subject', 'classroom')->orderBy('classroom_id')->get();
+
+        return view('admin.schedules.create', compact('mappings'));
+    }
+
+    /**
+     * Web (admin): simpan jadwal baru.
+     */
+    public function webAdminStore(StoreScheduleRequest $request): RedirectResponse
+    {
+        $data = $request->validated();
+        Schedule::create($data);
+        ActivityLogger::log('create', 'Menambahkan jadwal: '.ucfirst($data['day']).' jam '.$data['start_time']);
+
+        return redirect()->route('admin.schedules.index')->with('success', 'Jadwal berhasil ditambahkan');
+    }
+
+    /**
+     * Web (admin): form edit jadwal.
+     */
+    public function webAdminEdit(Schedule $schedule): View
+    {
+        $mappings = TeacherSubject::with('user', 'subject', 'classroom')->orderBy('classroom_id')->get();
+
+        return view('admin.schedules.edit', compact('schedule', 'mappings'));
+    }
+
+    /**
+     * Web (admin): perbarui jadwal.
+     */
+    public function webAdminUpdate(UpdateScheduleRequest $request, Schedule $schedule): RedirectResponse
+    {
+        $data = $request->validated();
+        $schedule->update($data);
+        ActivityLogger::log('update', 'Mengubah jadwal: '.ucfirst($data['day']).' jam '.$data['start_time'], $schedule);
+
+        return redirect()->route('admin.schedules.index')->with('success', 'Jadwal berhasil diperbarui');
+    }
+
+    /**
+     * Web (admin): hapus jadwal.
+     */
+    public function webAdminDestroy(Schedule $schedule): RedirectResponse
+    {
+        $day = $schedule->day;
+        $time = $schedule->start_time;
+        $schedule->delete();
+        ActivityLogger::log('delete', 'Menghapus jadwal: '.ucfirst($day).' jam '.$time);
+
+        return redirect()->route('admin.schedules.index')->with('success', 'Jadwal berhasil dihapus');
     }
 }
