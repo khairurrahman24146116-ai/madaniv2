@@ -23,7 +23,7 @@
         </div>
         @if(!empty($actions))
             <div class="flex flex-wrap gap-2 self-end">
-                @foreach($actions as $index => $action)
+                @foreach(array_values(array_filter($actions, fn ($action) => is_array($action))) as $index => $action)
                     @php
                         $aVariant = $action['variant'] ?? 'primary';
                         $aSize = $action['size'] ?? 'md';

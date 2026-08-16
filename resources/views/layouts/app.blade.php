@@ -4,6 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="view-transition" content="same-origin">
+    <link rel="icon" href="{{ asset('favicon.ico') }}">
     <title>Madani Al-Aziziyah @isset($title) - {{ $title }} @endisset</title>
     <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400..700&family=Inter:wght@100..900&family=JetBrains+Mono:wght@400;500;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet">
     @vite('resources/css/app.css')

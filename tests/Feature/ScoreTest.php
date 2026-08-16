@@ -284,7 +284,8 @@ class ScoreTest extends TestCase
             'verification_code' => 'TEST',
         ])->render();
 
-        $this->assertStringContainsString('( SMA Dayah Madani Al-Aziziyah )', $html);
+        $this->assertStringContainsString('YAYASAN DAYAH MADANI AL-AZIZIYAH', $html);
+        $this->assertStringContainsString(config('school.identity.kepala_sekolah'), $html);
         $this->assertStringNotContainsString('Laravel', $html);
     }
 

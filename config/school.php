@@ -4,6 +4,28 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Identitas Sekolah & Yayasan
+    |--------------------------------------------------------------------------
+    |
+    | Dipakai pada kop surat resmi dan rapor (PDF). Nama kepala sekolah dan
+    | alamat bisa disesuaikan tanpa mengubah kode.
+    |
+    */
+
+    'identity' => [
+        'nama_yayasan' => 'YAYASAN DAYAH MADANI AL-AZIZIYAH',
+        'nama_sekolah' => 'SMA Dayah Madani Al-Aziziyah',
+        'alamat' => 'Jln. T. Imum Hamzah, Dusun Kutaran, Gampong Lampeuneurut Ujong Blang',
+        'email' => 'info@madani.sch.id',
+        'telepon' => '-',
+        'kepala_sekolah' => 'Fahmi, S.Sos., MA',
+        'kepala_sekolah_nip' => null,
+        'logo_path' => 'images/logo-yayasan.png',
+        'accent_color' => '#1a5f2a',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Informasi Rekening & QRIS Resmi
     |--------------------------------------------------------------------------
     |

@@ -2,37 +2,12 @@
 // Madani Al-Aziziyah — UI Interactivity (vanilla JS, no deps)
 // ============================================================
 //
-// Bawaan browser/Tailwind saja: IntersectionObserver, View
-// Transitions API, requestAnimationFrame, dan CSS transitions.
+// Bawaan browser/Tailwind saja: IntersectionObserver,
+// View Transitions API (native cross-document via meta), dan
+// CSS transitions.
 
 // ------------------------------------------------------------
-// 1. View Transitions API — transisi halus antar navigasi
-// ------------------------------------------------------------
-// Aktif hanya untuk navigasi dokumen biasa (bukan form/API) dan
-// hanya jika browser mendukungnya.
-(function () {
-    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReduced || !document.startViewTransition) return;
-
-    document.addEventListener('click', (e) => {
-        const anchor = e.target.closest('a[href]');
-        if (!anchor) return;
-        const url = new URL(anchor.href);
-        if (anchor.origin !== window.location.origin) return;
-        if (url.pathname === window.location.pathname && url.search === window.location.search) return;
-        if (anchor.target && anchor.target !== '_self') return;
-        if (anchor.hasAttribute('download') || anchor.getAttribute('rel')?.includes('noopener')) return;
-        if (e.defaultPrevented) return;
-
-        e.preventDefault();
-        document.startViewTransition(() => {
-            window.location.href = anchor.href;
-        });
-    });
-})();
-
-// ------------------------------------------------------------
-// 2. Reveal on scroll — elemen `.reveal` tampil saat masuk viewport
+// 1. Reveal on scroll — elemen `.reveal` tampil saat masuk viewport
 // ------------------------------------------------------------
 (function () {
     const revealEls = document.querySelectorAll('.reveal');
@@ -53,7 +28,7 @@
 })();
 
 // ------------------------------------------------------------
-// 3. Animated counter — elemen dengan data-count="<angka>"
+// 2. Animated counter — elemen dengan data-count="<angka>"
 // ------------------------------------------------------------
 (function () {
     if (!('IntersectionObserver' in window)) return;
@@ -107,7 +82,7 @@
 })();
 
 // ------------------------------------------------------------
-// 4. Ripple effect untuk tombol (opsional: class .ripple)
+// 3. Ripple effect untuk tombol (opsional: class .ripple)
 // ------------------------------------------------------------
 (function () {
     if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {

@@ -1,108 +1,114 @@
-# Panduan Deploy ke Shared Hosting (cPanel)
+# Instruksi: Deploy madaniv2 ke Oracle Cloud Free Tier + Docker (Budget 0%)
 
-Panduan singkat men-deploy **Madani Al-Aziziyah** ke shared hosting (cPanel/DirectAdmin dengan PHP 8.2+ dan MySQL).
+## Konteks
+Project Laravel 13 (madaniv2) untuk Madani-SMS mau di-hosting gratis selamanya pakai VPS Oracle Cloud Free Tier + Docker, supaya laptop nggak perlu nyala 24 jam. Kamu masih junior — jadi ini dipecah step-by-step, termasuk bagian yang harus kamu kerjakan manual (bikin akun) dan bagian yang bisa didelegasikan ke opencode.
 
-## 1. Persyaratan hosting
+---
 
-- PHP >= 8.2 dengan ekstensi: `pdo_mysql`, `mbstring`, `openssl`, `tokenizer`, `xml`, `ctype`, `fileinfo`, `gd` (untuk PDF rapor)
-- MySQL/MariaDB
-- Akses SSH lebih baik, tapi tanpa SSH juga bisa (upload zip)
-- **Agar "Lupa Password" terkirim**, siapkan akun SMTP (mis. Gmail + App Password) lalu isi `MAIL_*` di `.env`. Jika tidak diisi, perintah tetap berjalan tapi email ditulis ke `storage/logs` (tidak terkirim).
+## BAGIAN A — Yang Harus Kamu Kerjakan Sendiri (opencode nggak bisa bantu ini)
 
-## 2. Upload file
+### 1. Daftar Oracle Cloud Free Tier
+- Buka https://www.oracle.com/cloud/free/
+- Daftar pakai email, wajib input kartu debit/kredit untuk verifikasi identitas (TIDAK akan ditagih untuk resource "Always Free")
+- Pilih **Home Region** — sebaiknya pilih Singapore atau Jakarta kalau tersedia (lebih dekat, latency lebih rendah buat user di Aceh)
 
-1. Jalankan di lokal dulu (sudah dilakukan): `npm run build` — folder `public/build` wajib ikut di-upload.
-2. Zip seluruh project **kecuali** `node_modules` dan `.git`, upload & extract di hosting, idealnya di luar `public_html` (mis. `~/madani-al-aziziyah`).
-3. Folder `vendor` ikut di-upload (shared hosting sering tidak punya composer). Jika ada SSH + composer, lebih baik jalankan `composer install --no-dev --optimize-autoloader` di server.
+### 2. Buat VM Instance (Compute)
+- Di dashboard Oracle Cloud → **Compute → Instances → Create Instance**
+- Pilih image: **Ubuntu 22.04** (bukan Oracle Linux, biar instruksi opencode di bawah cocok)
+- Shape: pilih **VM.Standard.A1.Flex** (ini yang free/Always Free, ARM-based) — set 2 OCPU & 12GB RAM (masih dalam batas gratis)
+- Di bagian **Add SSH keys**: pilih "Generate a key pair for me", lalu **download private key**-nya (file `.key`), simpan baik-baik — ini kunci buat masuk ke server nanti
+- Klik **Create**, tunggu sampai statusnya "Running"
+- Catat **Public IP Address** VM-nya
 
-## 3. Arahkan document root
+### 3. Buka Port di Firewall Oracle Cloud
+Ini sering jadi jebakan buat pemula — port harus dibuka di 2 tempat:
+- Di Oracle Cloud dashboard → VM instance → klik **Subnet** → **Security Lists** → **Add Ingress Rules**
+  - Tambah rule: port **80** (HTTP), source `0.0.0.0/0`
+  - Tambah rule: port **443** (HTTPS), source `0.0.0.0/0`
+  - Port **22** (SSH) biasanya sudah otomatis terbuka
 
-- **Jika bisa ubah document root:** arahkan ke `~/madani-al-aziziyah/public`.
-- **Jika tidak bisa (addon/subdomain biasanya bisa; domain utama kadang tidak):**
-  salin isi folder `public/` ke `public_html/`, lalu edit `public_html/index.php` — ubah dua path `__DIR__.'/../vendor/...'` dan `__DIR__.'/../bootstrap/...'` menjadi path ke folder project (mis. `__DIR__.'/../madani-al-aziziyah/vendor/...'`).
-
-## 4. Buat database & .env
-
-1. Di cPanel buat database MySQL + user, catat nama & password.
-2. Buat file `.env` di folder project di server, salin dari template di bawah, isi bagian yang bertanda `<...>`:
-
-```env
-APP_NAME="Madani Al-Aziziyah"
-APP_KEY=            # diisi lewat: php artisan key:generate
-APP_DEBUG=false
-APP_URL=https://<domain-anda>
-
-APP_LOCALE=id
-APP_FALLBACK_LOCALE=en
-APP_FAKER_LOCALE=id_ID
-
-BCRYPT_ROUNDS=12
-
-LOG_CHANNEL=stack
-LOG_STACK=single
-LOG_LEVEL=error
-
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=<nama_database_cpanel>
-DB_USERNAME=<user_database_cpanel>
-DB_PASSWORD=<password_database>
-
-SESSION_DRIVER=database
-SESSION_LIFETIME=120
-SESSION_ENCRYPT=false
-SESSION_PATH=/
-SESSION_DOMAIN=null
-SESSION_SECURE_COOKIE=true
-
-QUEUE_CONNECTION=database
-CACHE_STORE=database
-FILESYSTEM_DISK=local
-
-MAIL_MAILER=smtp
-MAIL_HOST=smtp.gmail.com
-MAIL_PORT=587
-MAIL_USERNAME=<email-pengirim-gmail>
-MAIL_PASSWORD=<password-aplikasi-gmail>
-MAIL_ENCRYPTION=tls
-MAIL_FROM_ADDRESS="no-reply@<domain-anda>"
-MAIL_FROM_NAME="${APP_NAME}"
-
-VITE_APP_NAME="${APP_NAME}"
+### 4. Connect ke VPS dari Laptop
+Di Windows (kamu pakai Laragon jadi kemungkinan Windows), buka PowerShell:
 ```
+icacls "path\ke\private-key.key" /inheritance:r /grant:r "%username%":R
+ssh -i "path\ke\private-key.key" ubuntu@<PUBLIC_IP_VPS>
+```
+Kalau berhasil, kamu sekarang "masuk" ke dalam VPS-nya lewat terminal.
 
-## 5. Inisialisasi aplikasi (via SSH atau Terminal cPanel)
+---
+
+## BAGIAN B — Setup VPS (jalankan setelah kamu SSH masuk ke VPS)
+
+File deploy **sudah tersedia di repo ini** — tidak perlu bikin dari nol:
+
+| File | Fungsi |
+|------|--------|
+| `Dockerfile` | Build image app (PHP 8.3-fpm) multi-stage: build Vite + composer + ekstensi PHP (pdo_mysql, mbstring, exif, pcntl, bcmath, gd, intl, zip, opcache) |
+| `docker-compose.yml` | 3 service: `app`, `db` (MySQL 8.4), `nginx`; volume untuk `storage/app/public` & `storage/backups` |
+| `docker/nginx/default.conf` | Reverse proxy, batas upload 25M, blokir akses `.env`, serve folder `/storage/` |
+| `docker/entrypoint.sh` | `storage:link`, generate `APP_KEY` bila kosong, cache config/route/view/event |
+| `docker/php/opcache.ini` | Konfigurasi OPcache + JIT untuk production |
+| `deploy/.env.production.example` | Template env production (copy → isi → simpan sebagai `.env`) |
+| `deploy.sh` | Update 1-command: git pull + rebuild + migrate + ProductionSeeder |
+
+### Langkah setup sekali jalan (setelah SSH masuk)
 
 ```bash
-cd ~/madani-al-aziziyah
-php artisan key:generate
-php artisan migrate --force
-php artisan db:seed --class=ProductionSeeder   # buat akun admin (password acak, dicatat dari output)
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-php artisan storage:link
+# 1. Install Docker Engine + Compose plugin (Ubuntu 22.04)
+curl -fsSL https://get.docker.com | sh
+sudo usermod -aG docker "$USER"
+
+# 2. Clone repo
+cd ~
+git clone https://github.com/khairurrahman24146116-ai/madaniv2.git sms
+cd sms
+
+# 3. Buat .env production
+cp deploy/.env.production.example .env
+#    → isi: APP_URL, DB_PASSWORD, DB_ROOT_PASSWORD, SEED_ADMIN_PASSWORD, SEED_BENDAHARA_PASSWORD
+#      (DB_HOST sudah benar "db" — jangan diubah)
+
+# 4. Build & jalankan (proses ini men-generate APP_KEY otomatis,
+#    storage:link otomatis, dan menjalankan migration + ProductionSeeder)
+sudo bash deploy.sh
 ```
 
-> `ProductionSeeder` hanya membuat 1 akun admin (`admin@madani.id`) dengan password acak yang ditampilkan sekali di terminal — **catat dan simpan**. Jangan jalankan `DatabaseSeeder` di hosting (berisi data demo; sudah diblokir otomatis saat `APP_ENV=production`).
+> **Catatan penting:** `deploy.sh` menjalankan `db:seed --class=ProductionSeeder`
+> (bukan `DatabaseSeeder`, karena yang demo **diblokir di production**).
+> Admin & bendahara dibuat sekali pakai password di `.env`.
 
-Tanpa SSH: gunakan menu "Terminal" di cPanel, atau jalankan migrasi lewat fitur import SQL (kurang disarankan).
-
-## 6. Cek setelah deploy
-
-- [ ] Buka `https://<domain-anda>` — halaman login tampil, CSS/JS termuat (artinya `public/build` benar).
-- [ ] Login admin dengan password dari ProductionSeeder, lalu **ganti password** dari menu profil.
-- [ ] Buat data master (kelas, mapel, guru, siswa) lewat menu admin.
-- [ ] Tes export PDF rapor (butuh ekstensi `gd`).
-- [ ] Pastikan `APP_DEBUG=false` (cek dengan membuka URL ngawur — harus tampil error 404 biasa, bukan stack trace).
-
-## 7. Backup (disarankan)
-
-Di cPanel buat Cron Job harian pukul 17.00 WIB:
-
-```
-0 17 * * * mysqldump -u <user_db> -p'<password_db>' <nama_db> | gzip > ~/backup/madani-$(date +\%u).sql.gz
+### Update aplikasi di kemudian hari
+```bash
+cd ~/sms
+sudo bash deploy.sh
 ```
 
-(File berputar per hari-dalam-minggu, jadi maksimal 7 file backup.)
+---
+
+## BAGIAN C — Setelah Aplikasi Jalan (opsional tapi disarankan)
+
+### 1. Pasang Domain (kalau punya, misal dari yayasan)
+Arahkan DNS domain ke Public IP VPS (A record), lalu minta opencode setup **Nginx + Certbot** untuk HTTPS gratis (Let's Encrypt).
+
+### 2. Auto-restart kalau VPS reboot
+Sudah terpasang: setiap service di `docker-compose.yml` memakai `restart: always`, jadi container otomatis jalan lagi kalau VPS reboot — tidak perlu SSH manual.
+
+### 3. Backup Database Otomatis
+Aplikasi sudah punya command `php artisan db:backup` (simpan ke `storage/backups/*.sql`, retensi 7 file) dan jadwal harian di `routes/console.php` (terdaftar sebagai `db:backup`). Tinggal jalankan scheduler + cron di VPS:
+
+```bash
+docker compose exec -d app php artisan schedule:work
+# atau pasang cron di host:
+# crontab -e  →   * * * * * cd ~/sms && docker compose exec -T app php artisan schedule:run >> /dev/null 2>&1
+```
+
+> **Catatan:** command `db:backup` memanggil `mysqldump` — binary tersebut sudah
+> diinstall ke dalam image app (via `default-mysql-client` di Dockerfile),
+> sehingga `DB_HOST=db` terbaca otomatis dari `.env`.
+
+---
+
+## Catatan Penting Buat Kamu
+- **Simpan private key `.key`** baik-baik — kalau hilang, kamu tidak bisa masuk ke VPS lagi (harus bikin instance baru)
+- Setelah setup awal selesai, **kamu tidak perlu SSH tiap hari** — VPS jalan sendiri 24 jam. SSH cuma diperlukan pas mau update kode (`git pull` + restart container)
+- Kalau nanti mau update aplikasi setelah edit kode di laptop: push ke GitHub → SSH ke VPS → `git pull` → `docker compose restart` (atau minta opencode buatkan script `deploy.sh` biar tinggal 1 command)

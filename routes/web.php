@@ -15,6 +15,7 @@ use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\PasswordChangeController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RaporVerificationController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\ScoreComponentController;
 use App\Http\Controllers\ScoreController;
@@ -29,6 +30,9 @@ use App\Http\Controllers\WaliMuridController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'redirectHome']);
+
+// ===== Verifikasi Keaslian Rapor (publik, tanpa login) =====
+Route::get('/rapor/verifikasi/{kode}', [RaporVerificationController::class, 'verifikasi'])->name('rapor.verifikasi');
 
 // ===== Web Login =====
 Route::post('/auth/login/web', [AuthController::class, 'loginWeb'])->name('auth.login.web')->middleware('throttle:5,1');

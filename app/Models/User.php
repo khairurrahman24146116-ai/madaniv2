@@ -102,6 +102,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Relasi ke tanda tangan digital milik pengguna (role wali_kelas).
+     */
+    public function tandaTangans(): HasMany
+    {
+        return $this->hasMany(TandaTangan::class, 'user_id');
+    }
+
+    /**
      * Cek apakah user memiliki role admin.
      */
     public function isAdmin(): bool

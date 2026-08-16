@@ -5,24 +5,23 @@
     <title>E-Rapor {{ $student->name }}</title>
     <style>
         body { font-family: 'DejaVu Sans', sans-serif; font-size: 11pt; color: #1c1b18; line-height: 1.5; }
-        .header { text-align: center; border-bottom: 3px solid #2563eb; padding-bottom: 12px; margin-bottom: 20px; }
-        .header h1 { margin: 0; font-size: 16pt; color: #2563eb; letter-spacing: 0.02em; }
-        .header h2 { margin: 5px 0; font-size: 13pt; color: #4d4841; }
-        .header p { margin: 2px 0; font-size: 10pt; color: #7d786f; }
         .stamp { text-align: center; margin: 15px 0; }
-        .stamp span { display: inline-block; padding: 8px 20px; border: 2px solid #2563eb; color: #2563eb; font-weight: bold; font-size: 10pt; letter-spacing: 0.15em; }
+        .stamp span { display: inline-block; padding: 8px 20px; border: 2px solid #1a5f2a; color: #1a5f2a; font-weight: bold; font-size: 10pt; letter-spacing: 0.15em; }
+        .rapor-title { text-align: center; margin: 5px 0 20px 0; }
+        .rapor-title h2 { margin: 0; font-size: 15pt; font-weight: bold; text-decoration: underline; }
+        .rapor-title p { margin: 3px 0; font-size: 10.5pt; color: #4d4841; }
         .info-table { width: 100%; margin-bottom: 20px; font-size: 10pt; }
         .info-table td { padding: 3px 5px; }
         .info-table td:first-child { width: 140px; font-weight: bold; color: #4d4841; }
         table.subjects { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 9.5pt; }
-        table.subjects th { background: #2563eb; color: #fff; padding: 8px 5px; text-align: center; font-size: 9pt; }
+        table.subjects th { background: #1a5f2a; color: #fff; padding: 8px 5px; text-align: center; font-size: 9pt; }
         table.subjects td { padding: 6px 5px; border-bottom: 1px solid #dcd6cd; text-align: center; }
         table.subjects tr:nth-child(even) { background: #f0ece6; }
         table.subjects .subject-name { text-align: left; }
         .grade-pass { color: #1a7a3a; font-weight: bold; }
         .grade-fail { color: #ba1a1a; font-weight: bold; }
         .grade-null { color: #bcb5aa; }
-        .summary { margin-top: 20px; padding: 15px; background: #f0ece6; border-radius: 5px; font-size: 10pt; border-left: 4px solid #2563eb; }
+        .summary { margin-top: 20px; padding: 15px; background: #f0ece6; border-radius: 5px; font-size: 10pt; border-left: 4px solid #1a5f2a; }
         .summary table { width: 100%; }
         .summary td { padding: 3px 10px; }
         .summary td:first-child { font-weight: bold; width: 200px; color: #4d4841; }
@@ -37,29 +36,34 @@
         .signature-table { width: 100%; }
         .signature-table td { width: 50%; text-align: center; padding: 5px; vertical-align: top; }
         .signature-table .role { font-size: 10pt; font-weight: bold; color: #4d4841; margin-bottom: 5px; }
-        .signature-table .name { font-size: 11pt; font-weight: bold; margin-top: 50px; }
-        .signature-table .underline { border-bottom: 1px solid #1c1b18; width: 200px; margin: 0 auto; }
-        .signature-table .nip { font-size: 9pt; color: #7d786f; }
+        .signature-box { position: relative; display: inline-block; text-align: center; margin-top: 40px; }
+        .signature-box .ttd { position: absolute; top: -46px; left: 50%; transform: translateX(-50%); width: 180px; }
+        .signature-box .ttd img { width: 180px; height: 50px; object-fit: contain; }
+        .signature-box .name { font-size: 11pt; font-weight: bold; border-top: 1px solid #1c1b18; padding-top: 2px; }
+        .signature-box .nip { font-size: 9pt; color: #7d786f; }
         .verify-section { margin-top: 25px; padding: 12px; border: 1px dashed #7d786f; border-radius: 5px; text-align: center; font-size: 8.5pt; color: #7d786f; }
-        .verify-section strong { color: #2563eb; }
-        .verify-code { font-family: 'DejaVu Sans Mono', monospace; font-size: 9pt; letter-spacing: 0.1em; color: #2563eb; font-weight: bold; margin: 5px 0; }
+        .verify-section strong { color: #1a5f2a; }
+        .verify-code { font-family: 'DejaVu Sans Mono', monospace; font-size: 9pt; letter-spacing: 0.1em; color: #1a5f2a; font-weight: bold; margin: 5px 0; }
+        .verify-qr img { width: 70px; height: 70px; margin: 6px auto; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>YAYASAN DAYAH MADANI AL-AZIZIYAH</h1>
-        <h2>SMA FORMAL - LAPORAN HASIL BELAJAR (E-RAPOR)</h2>
-        <p>Semester {{ ucfirst($semester) }} | Tahun Ajaran {{ $academic_year }}</p>
-    </div>
+    @include('pdf.partials.kop-yayasan')
 
     <div class="stamp">
         <span>DOKUMEN RESMI</span>
+    </div>
+
+    <div class="rapor-title">
+        <h2>LAPORAN HASIL BELAJAR SISWA</h2>
+        <p>Semester {{ ucfirst($semester) }} &mdash; Tahun Ajaran {{ $academic_year }}</p>
     </div>
 
     <table class="info-table">
         <tr><td>Nama Santri</td><td>: <strong>{{ $student->name }}</strong></td></tr>
         <tr><td>NIS</td><td>: {{ $student->nis }}</td></tr>
         <tr><td>Kelas</td><td>: {{ $classroom->name }} ({{ $classroom->grade }})</td></tr>
+        <tr><td>Wali Kelas</td><td>: {{ $classroom->waliKelas->name ?? '-' }}</td></tr>
         <tr><td>Semester</td><td>: {{ ucfirst($semester) }}</td></tr>
         <tr><td>Tahun Ajaran</td><td>: {{ $academic_year }}</td></tr>
     </table>
@@ -74,6 +78,7 @@
                 <th>UTS</th>
                 <th>UAS</th>
                 <th>NA</th>
+                <th>Predikat</th>
                 <th>Ket</th>
             </tr>
         </thead>
@@ -90,6 +95,9 @@
                     <td class="grade-number {{ $subject['passed'] === true ? 'grade-pass' : ($subject['passed'] === false ? 'grade-fail' : 'grade-null') }}">
                         {{ $subject['final_grade'] ?? '-' }}
                     </td>
+                    <td class="{{ $subject['passed'] === false ? 'grade-fail' : 'grade-pass' }}">
+                        {{ $subject['final_grade'] !== null ? \App\Services\PredikatHelper::dariNilai($subject['final_grade']) : '-' }}
+                    </td>
                     <td>
                         @if($subject['passed'] === true)
                             <span class="grade-pass">LULUS</span>
@@ -100,7 +108,7 @@
                         @endif
                     </td>
                 @else
-                    <td colspan="6" class="grade-null">Belum ada nilai</td>
+                    <td colspan="7" class="grade-null">Belum ada nilai</td>
                 @endif
             </tr>
             @endforeach
@@ -142,15 +150,25 @@
             <tr>
                 <td>
                     <div class="role">Mengetahui,</div>
-                    <div class="role">Kepala Sekolah</div>
-                    <div class="name">( ______________________ )</div>
-                    <div class="nip">NIP. -</div>
+                    <div class="role">Wali Kelas</div>
+                    <div class="signature-box">
+                        @if($ttdWaliKelas ?? null)
+                            <span class="ttd"><img src="{{ public_path('storage/'.$ttdWaliKelas->file_path) }}" alt="TTD"></span>
+                        @endif
+                        <div class="name">{{ $classroom->waliKelas->name ?? '-' }}</div>
+                        <div class="nip">{{ $classroom->waliKelas?->role ? 'Guru' : '' }}</div>
+                    </div>
                 </td>
                 <td>
-                    <div class="role">{{ $generated_at ? 'Diproses pada,' : 'Wali Kelas' }}</div>
-                    <div class="role">Administrator Sistem</div>
-                    <div class="name">( SMA Dayah Madani Al-Aziziyah )</div>
-                    <div class="nip">Sistem Informasi Terpadu</div>
+                    <div class="role">Aceh Besar, {{ now()->locale('id')->isoFormat('D MMMM Y') }}</div>
+                    <div class="role">Kepala Sekolah</div>
+                    <div class="signature-box">
+                        @if($ttdKepsek ?? null)
+                            <span class="ttd"><img src="{{ public_path('storage/'.$ttdKepsek->file_path) }}" alt="TTD"></span>
+                        @endif
+                        <div class="name">{{ config('school.identity.kepala_sekolah') }}</div>
+                        <div class="nip">{{ config('school.identity.kepala_sekolah_nip') ? 'NIP. '.config('school.identity.kepala_sekolah_nip') : '' }}</div>
+                    </div>
                 </td>
             </tr>
         </table>
@@ -158,14 +176,21 @@
 
     <div class="verify-section">
         <strong>&#10003; TANDA TANGAN DIGITAL</strong><br>
-        Dokumen ini telah diproses secara elektronik melalui <strong>SMA Dayah Madani Al-Aziziyah</strong>.<br>
+        Dokumen ini telah diproses secara elektronik melalui <strong>{{ config('school.identity.nama_sekolah') }}</strong>.<br>
         Kode Verifikasi: <div class="verify-code">{{ $verification_code }}</div>
-        <em>Verifikasi keaslian dokumen melalui sistem informasi sekolah.</em>
+        @if($verifyUrl ?? null)
+            <div class="verify-qr">
+                <img src="{{ app(\App\Services\QrCodeService::class)->dataUri($verifyUrl, 70) }}" alt="QR Verifikasi">
+            </div>
+            <em>Scan QR untuk verifikasi keaslian rapor</em>
+        @else
+            <em>Verifikasi keaslian dokumen melalui sistem informasi sekolah.</em>
+        @endif
     </div>
 
     <div class="footer">
         Dicetak pada: {{ $generated_at }}<br>
-        <em>Dokumen ini sah dan diproses secara elektronik melalui Sistem Informasi Manajemen SMA Dayah Madani Al-Aziziyah</em>
+        <em>Dokumen ini sah dan diproses secara elektronik melalui {{ config('school.identity.nama_sekolah') }}</em>
     </div>
 </body>
 </html>

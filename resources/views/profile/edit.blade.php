@@ -50,6 +50,41 @@
                 </div>
                 @endif
 
+                @if($ttdRoleLabel)
+                <div class="pt-4 border-t border-outline-variant">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="material-symbols-outlined text-primary">draw</span>
+                        <h3 class="text-title-lg font-bold text-on-surface">Tanda Tangan Digital</h3>
+                    </div>
+                    <p class="text-body-md text-on-surface-variant mb-4">
+                        Tanda tangan {{ $ttdRoleLabel }} dipakai di atas nama pada PDF rapor dan surat resmi. Format: PNG transparan, maksimal 2MB.
+                    </p>
+
+                    @if($ttdAktif)
+                    <div class="flex items-center gap-4 p-4 rounded-lg bg-surface-container-low border border-outline-variant mb-4">
+                        <img src="{{ asset('storage/'.$ttdAktif->file_path) }}" alt="Tanda tangan aktif" class="h-16 bg-white rounded border border-outline-variant p-1">
+                        <div>
+                            <p class="text-body-md font-semibold text-on-surface">Tanda tangan aktif</p>
+                            <p class="text-caption text-on-surface-variant">Diunggah {{ $ttdAktif->created_at->locale('id')->isoFormat('D MMMM Y') }}. Unggah baru untuk mengganti.</p>
+                        </div>
+                    </div>
+                    @else
+                    <div class="p-4 rounded-lg bg-warning-container/40 border border-warning-container mb-4">
+                        <p class="text-body-md text-on-warning-container">Belum ada tanda tangan. Unggah PNG transparan di bawah ini.</p>
+                    </div>
+                    @endif
+
+                    <x-form-input type="file" name="tanda_tangan" label="Unggah Tanda Tangan (PNG transparan)" hint="Posisi tanda tangan otomatis ditempel di atas nama." :error="$errors->first('tanda_tangan')" />
+
+                    @if($ttdAktif)
+                    <div class="flex items-center gap-2 mt-3">
+                        <input type="checkbox" name="hapus_tanda_tangan" id="hapus_tanda_tangan" value="1" class="w-4 h-4 rounded border-outline-variant text-error focus:ring-2 focus:ring-error/20">
+                        <label for="hapus_tanda_tangan" class="text-body-md text-error cursor-pointer">Hapus tanda tangan saat ini</label>
+                    </div>
+                    @endif
+                </div>
+                @endif
+
                 <div class="flex gap-4 pt-4 border-t border-outline-variant">
                     <x-button variant="primary" type="submit" icon="save">Simpan Perubahan</x-button>
                 </div>

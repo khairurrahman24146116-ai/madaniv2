@@ -6,6 +6,7 @@ use App\Models\Attendance;
 use App\Models\Score;
 use App\Models\Student;
 use App\Models\Subject;
+use App\Models\TandaTangan;
 use App\Models\TeacherSubject;
 use App\Services\RaporService;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -485,6 +486,13 @@ class ScoreController extends Controller
             config('app.key'),
         ])));
 
+        $kode = substr($verificationCode, 0, 16);
+
+        $ttdKepsek = TandaTangan::where('role', 'kepala_sekolah')->where('is_active', true)->latest('id')->first();
+        $ttdWaliKelas = $student->classroom->wali_kelas_id
+            ? TandaTangan::where('user_id', $student->classroom->wali_kelas_id)->where('is_active', true)->latest('id')->first()
+            : null;
+
         $pdf = Pdf::loadView('pdf.rapor', [
             'student' => $student,
             'classroom' => $student->classroom,
@@ -501,13 +509,21 @@ class ScoreController extends Controller
                 'A' => (int) $attendanceSummary->get('A', 0),
             ],
             'generated_at' => now()->toDateTimeString(),
-            'verification_code' => substr($verificationCode, 0, 16),
+            'verification_code' => $kode,
+            'verifyUrl' => route('rapor.verifikasi', [
+                'kode' => $kode,
+                'student' => $student->id,
+                'semester' => $semester,
+                'academic_year' => $academicYear,
+            ]),
+            'ttdKepsek' => $ttdKepsek,
+            'ttdWaliKelas' => $ttdWaliKelas,
         ]);
 
         $safeAcademicYear = str_replace('/', '-', $academicYear);
         $filename = "rapor_{$student->nis}_{$semester}_{$safeAcademicYear}.pdf";
 
-        return $pdf->download($filename);
+        return $pdf->stream($filename);
     }
 
     /**

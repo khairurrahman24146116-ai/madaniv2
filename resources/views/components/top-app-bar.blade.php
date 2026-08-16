@@ -9,7 +9,7 @@
     <div class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-2 max-w-[var(--container-max)] mx-auto">
         <div class="flex items-center gap-4">
             <a href="{{ route('dashboard') }}" class="flex items-center gap-2">
-                <span class="w-9 h-9 bg-primary text-on-primary rounded-md flex items-center justify-center material-symbols-outlined">school</span>
+                <x-app-logo size="sm" class="rounded-md overflow-hidden" />
                 <div>
                     <h1 class="font-title-lg text-title-lg font-semibold text-on-surface leading-none">{{ $title }}</h1>
                     <p class="hidden sm:block text-caption text-on-surface-variant mt-1">{{ $subtitle }}</p>

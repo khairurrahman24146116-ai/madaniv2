@@ -3,14 +3,12 @@
 @section('content')
 <div class="bg-surface-container-lowest rounded-xl shadow-lg border border-surface-container-high overflow-hidden">
     {{-- Header Section --}}
-    <div class="bg-primary-container p-8 flex flex-col items-center justify-center text-center rounded-t-xl">
-        <img alt="SMA Madani Al-Aziziyah Logo"
-             class="w-24 h-24 object-cover rounded-full shadow-md mb-4 border-2 border-on-primary-container"
-             src="https://lh3.googleusercontent.com/aida-public/AB6AXuC5uWfPS91vRZqxbVp9HVAy_irRrrVsYIbsfUocnFMpVpF2COYhwHjxqLf5xYNtL5Icvxmet9BOK5_LJln3UJ3KBfmKu13wsyAYmf8Z3JdAdBJJJNJLmqEl5aomDzM839yj3lusWzQe30ItE4DNLfEtvwWuY-cqBTX6zUTXYqp-piQ3OrK_5ity3U6b3tEfgX7qmH7us7QilBqFxTarDRDzXiTkvvOUMgujkY7QF_RQkrMn98NPYQ1lrxpRO8qE1ucFLYI" />
-        <h1 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg text-on-primary-container font-bold">
+    <div class="bg-white p-8 flex flex-col items-center justify-center text-center rounded-t-xl">
+        <x-app-logo size="lg" class="mb-4" />
+        <h1 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg text-primary font-bold">
             SIAKAD
         </h1>
-        <p class="font-title-lg text-title-lg text-primary-fixed-dim opacity-90 mt-1">
+        <p class="font-title-lg text-title-lg text-on-surface-variant opacity-90 mt-1">
             SMA Madani Al-Aziziyah
         </p>
     </div>

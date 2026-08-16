@@ -23,6 +23,8 @@ class UpdateProfileRequest extends FormRequest
             'phone' => ['nullable', 'string', 'max:20'],
             'address' => ['nullable', 'string'],
             'profile_photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
+            'tanda_tangan' => ['nullable', 'image', 'mimes:png', 'max:2048'],
+            'hapus_tanda_tangan' => ['nullable', 'boolean'],
         ];
     }
 }
